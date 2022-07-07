@@ -1,14 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"github.com/IoIxD/ScratchGo/core"
 )
 
 func main() {
-	project, err := GetProject()
-	if(err != nil) {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(project)
+	core.Run()
 }

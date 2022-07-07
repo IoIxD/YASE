@@ -1,4 +1,4 @@
-package main
+package core
 
 // functions relating to accessing the scratch api,
 // and converting project code to structs

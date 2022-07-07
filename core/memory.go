@@ -1,8 +1,9 @@
-package main
+package core
 
 // the fake "memory" for a project so to speak; variables, etc.
 
 import (
+	"fmt"
 	"encoding/json"
 )
 
@@ -10,6 +11,40 @@ type Project struct {
 	Objects    []Object 	`json:"targets"`
 	// Monitor isn't implemented because even if there WAS an editor it's useless
 	Extensions []string     `json:"extensions"`
+}
+
+func (p Project) String() (returnString string) {
+	returnString = "Objects: {"
+	for _, v := range p.Objects {
+		returnString += fmt.Sprintf(`
+	"%s": {
+		IsStage: %b
+		CurrentCostume: %.0f
+		Volume: %.0f
+		LayerOrder: %.0f
+		Tempo: %.0f
+		VideoTransparency: %.0f
+		VideoState: %s
+		PositionX: %.0f
+		PositionY: %.0f
+		Size: %.0f
+		Direction: %.0f
+		Draggable: %b
+		RotationStyle: %s
+	}`,
+		v.Name, v.IsStage, v.CurrentCostume, v.Volume, v.LayerOrder, v.Tempo,
+		v.VideoTransparency, v.VideoState, v.PositionX, v.PositionY, v.Size,
+		v.Direction, v.Draggable, v.RotationStyle)
+	}
+	returnString += "\n}\nExtenstions: ["
+	for i, v := range p.Extensions {
+		returnString += v
+		if(len(p.Extensions) < i) {
+			returnString += ", "
+		}
+	}
+	returnString += "]"
+	return
 }
 
 // Any values that can be stored in memory
