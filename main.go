@@ -1,9 +1,12 @@
 package main
 
 import (
-	"github.com/IoIxD/ScratchGo/core"
+	"github.com/IoIxD/YASE/core"
 )
 
 func main() {
-	core.Run()
+	err := core.Run()
+	if(err != nil) {
+		println(err.Error())
+	}
 }

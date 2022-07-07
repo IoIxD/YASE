@@ -1,3 +1,3 @@
-module github.com/IoIxD/ScratchGo
+module github.com/IoIxD/YASE
 
 go 1.18

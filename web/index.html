@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<title>YASE</title>
+	</head>
+    <body>
+        <main id="wasm"></main>
+    </body>
+    <script src="gofill.js"></script>
+	<script src="wasm_exec.js"></script>
+	<script>
+		// Try to initialize the WebAssembly file
+		// (we use eval because (very) old browsers that can't do eval will actually show the error we want upon seeing the async syntax)
+		try {
+			eval("if (WebAssembly) { "+
+						// WebAssembly.instantiateStreaming is not currently available in Safari, so do this polyfill.
+	            "     if (WebAssembly && !WebAssembly.instantiateStreaming) { "+
+	            "         WebAssembly.instantiateStreaming = async (resp, importObject) => {"+
+	            "            const source = await (await resp).arrayBuffer();"+
+	            "             return await WebAssembly.instantiate(source, importObject);"+
+	            "         };"+
+	            "     }  "+
+	            "     const go = new Go();"+
+	            "     WebAssembly.instantiateStreaming(fetch('yase.wasm'), go.importObject).then((result) => {"+
+	            "        go.run(result.instance);"+
+	            "     });"+
+				"} else {"+
+				"	h1 = document.createElement('h1');"+
+				"	h1.innerHTML = 'YASE requires WebAssembly support.';"+
+				"	document.getElementById('wasm').appendChild(h1);"+
+				"}")
+		} catch(ex1) {
+			try {
+				console.error(ex1); 
+			} catch(ex2) {
+				// Yes this is the most unlikely error to ever hit but it's better then showing a blank white screen to those who try.
+				h1 = document.createElement("h1");
+				h1.innerHTML = "Your browser couldn't even do console.error, it might actually be too old for the site."
+				p = document.createElement("p");
+				p.innerHTML = "And there are no plans to support browsers that can't do WebAssembly and async, sorry."
+				sup = document.createElement("sup");
+				sup.innerHTML = "(the error was: '"+ex1+"')";
+				document.getElementById("wasm").appendChild(h1);
+				document.getElementById("wasm").appendChild(p);
+				document.getElementById("wasm").appendChild(sup);
+			}
+		}
+	</script>
+</html>

@@ -5,6 +5,8 @@ package core
 import (
 	"fmt"
 	"errors"
+
+	_ "github.com/IoIxD/YASE/core/assembly"
 )
 
 // Function for start execution of a project.
@@ -21,7 +23,7 @@ func Run() (err error) {
 			if(b.TopLevel) {
 				err := b.Execute()
 				if(err != nil) {
-					fmt.Println(err)
+					println(err.Error())
 				}
 			}
 		}

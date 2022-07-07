@@ -6,7 +6,7 @@ package core
 import (
 	//"io"
 	//"net/http"
-	"os"
+	. "github.com/IoIxD/YASE/core/syscall"
 )
 
 // function for getting information about a project
@@ -22,7 +22,7 @@ func GetProject() (data *Project, err error) {
 	//	return nil, err
 	//}
 
-	body, err := os.ReadFile("./test.json")
+	body, err := ReadFile("./test.json")
 	if(err != nil) {
 		return nil, err
 	}
