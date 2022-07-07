@@ -22,7 +22,7 @@ func GetProject() (data *Project, err error) {
 	//	return nil, err
 	//}
 
-	body, err := os.ReadFile("./shorter_test.json")
+	body, err := os.ReadFile("./test.json")
 	if(err != nil) {
 		return nil, err
 	}

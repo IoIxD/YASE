@@ -30,27 +30,26 @@ type AcceptableValue interface {
 // What Scratch calls a "sprite"; we call it an object because that makes
 // more sense to a seasoned programmer
 type Object struct {
-	isStage    bool
-	name       string
-	variables  map[string]Variable
-	lists      map[string]List
-	broadcasts map[string]string // no struct needed
-	blocks     map[string]Block
-	// comments aren't implemented
-	// currentCostume doesn't need to be in the struct
-	costumes             []Costume
-	sounds               []Sound
-	volume               int32
-	layerOrder           int32
-	tempo                int32
-	videoTransparency    int32
-	videoState           bool
-	textToSpeechLanguage interface{} // todo: what is this
-	position             Position
-	size                 int16
-	direction            int16
-	draggable            bool
-	rotationStyle        string
+	IsStage    bool
+	Name       string
+	Variables  map[string]Variable
+	Lists      map[string]List
+	Broadcasts map[string]string // no struct needed
+	Blocks     map[string]Block
+
+	Costumes             []Costume
+	Sounds               []Sound
+	Volume               float32
+	LayerOrder           float32
+	Tempo                float32
+	VideoTransparency    float32
+	VideoState           bool
+	TextToSpeechLanguage interface{} // todo: what is this
+	Position             Position
+	Size                 int16
+	Direction            int16
+	Draggable            bool
+	RotationStyle        string
 }
 
 type Position struct {
@@ -60,32 +59,34 @@ type Position struct {
 // the json version(s) of this struct that we unmarshal from the json file,
 // and then convert to a safer struct
 type ObjectJSON struct {
-	isStage 				bool   							`json:"isStage"`
-	name    				string 							`json:"name"`
-	variables  				map[string][]any             	`json:"variables"`
-	lists      				map[string][]any             	`json:"lists"`
-	broadcasts 				map[string]map[string]string 	`json:"broadcasts"`
-	blocks     				[]BlockJSON                  	`json:"blocks"`
-	costumes   				[]CostumeJSON                	`json:"costumes"`
-	sounds     				[]SoundJSON              		`json:"sounds"`
-	volume              	int32       					`json:"volume"`
-	layerOrder           	int32       					`json:"layerOrder"`
-	tempo                	int32       					`json:"tempo"`
-	videoTransparency    	int32       					`json:"videoTransparency"`
-	videoState           	bool        					`json:"videoState"`
-	textToSpeechLanguage 	interface{} 					`json:"textToSpeechLanguage"`
-	positionX            	int32       					`json:"x"`
-	positionY            	int32       					`json:"y"`
-	size                 	int16       					`json:"size"`
-	direction            	int16       					`json:"direction"`
-	draggable            	bool        					`json:"draggable"`
-	rotationStyle        	string      					`json:"rotationStyle"`
+	IsStage 				bool   							`json:"isStage"`
+	Name    				string 							`json:"name"`
+	Variables  				map[string][]any             	`json:"variables"`
+	Lists      				map[string][]any             	`json:"lists"`
+	Broadcasts 				map[string]string 				`json:"broadcasts"`
+	Blocks     				map[string]BlockJSON            `json:"blocks"`
+	// comments aren't implemented
+	CurrentCostume  		float32 						`json:"currentCostume"`
+	Costumes   				[]CostumeJSON                	`json:"costumes"`
+	Sounds     				[]SoundJSON              		`json:"sounds"`
+	Volume              	float32       					`json:"volume"`
+	LayerOrder           	float32       					`json:"layerOrder"`
+	Tempo                	float32       					`json:"tempo"`
+	VideoTransparency    	float32       					`json:"videoTransparency"`
+	VideoState           	string        					`json:"videoState"`
+	TextToSpeechLanguage 	interface{} 					`json:"textToSpeechLanguage"`
+	PositionX            	float32       					`json:"x"`
+	PositionY            	float32       					`json:"y"`
+	Size                 	float32       					`json:"size"`
+	Direction            	float32       					`json:"direction"`
+	Draggable            	bool        					`json:"draggable"`
+	RotationStyle        	string      					`json:"rotationStyle"`
 }
 
 // Self explanatory
 type Variable struct {
-	name  string
-	value any
+	Name  string
+	Value any
 }
 
 func (Variable) NewSet() map[string]Variable {
@@ -97,76 +98,78 @@ func (Variable) NewSet() map[string]Variable {
 
 type List struct {
 	Name  string
-	value []any
+	Value []any
 }
 
 // A graphic in Scratch
 type Costume struct {
-	asset           image.Image
-	name            string
-	resolution      int
-	md5             string
-	format          string
-	rotationCenterX float32
-	rotationCenterY float32
+	Asset           image.Image
+	Name            string
+	Resolution      int
+	MD5             string
+	Format          string
+	RotationCenterX float32
+	RotationCenterY float32
 }
 
 type CostumeJSON struct {
-	assetId          string
-	name             string
-	bitmapResolution int
-	md5              string
-	dataFormat       string
-	rotationCenterX  float32
-	rotationCenterY  float32
+	AssetId          string
+	Name             string
+	BitmapResolution int
+	MD5              string
+	DataFormat       string
+	RotationCenterX  float32
+	RotationCenterY  float32
 }
 
 // A sound in Scratch
 type Sound struct {
-	asset       []byte
-	name        string
-	dataFormat  string
-	rate        int16
-	sampleCount int32
-	md5         string
+	Asset       []byte
+	Name        string
+	DataFormat  string
+	Rate        float32
+	SampleCount float32
+	MD5         string
 }
 
 type SoundJSON struct {
-	assetId         string
-	name            string
-	dataFormat      string
-	rate            int16
-	sampleCount     int32
-	md5 			float32
+	AssetId         string
+	Name            string
+	DataFormat      string
+	Rate            float32
+	SampleCount     float32
+	MD5 			float32
 }
 
 // A set of instructions in Scratch
 type Block struct {
-	opcode      string
-	nextBlock   *Block
-	parentBlock *Block
-	inputs      []*Variable
-	fields      []*Variable
-	shadow      bool
-	topLevel    bool
+	Opcode      string
+	NextBlock   *Block
+	ParentBlock *Block
+	Inputs      []*Variable
+	Fields      []*Variable
+	Shadow      bool
+	TopLevel    bool
 	// position values aren't accounted for obvious reasons
 }
 
 // A struct for the json version of this that is usually translated to a
 // proper block
 type BlockJSON struct {
-	opcode      json.RawMessage `json:"opcode"`
-	nextBlock   json.RawMessage `json:"next"`
-	parentBlock json.RawMessage `json:"parent"`
-	inputs      json.RawMessage `json:"inputs"`
-	fields      json.RawMessage `json:"fields"`
-	shadow      json.RawMessage `json:"shadow"`
-	topLevel    json.RawMessage `json:"topLevel"`
+	Opcode      string `json:"opcode"`
+	NextBlock   string `json:"next"`
+	ParentBlock string `json:"parent"`
+	Inputs      map[string]any `json:"inputs"`
+	Fields      map[string]any `json:"fields"`
+	Shadow      bool `json:"shadow"`
+	TopLevel    bool `json:"topLevel"`
 }
 
 func JSONToMemory(body []byte) (project *Project, err error) {
 	project = &Project{}
 
+
+	// first, 
 	projectJSON := &ProjectJSON{}
 	err = json.Unmarshal(body, projectJSON)
 	if err != nil {
