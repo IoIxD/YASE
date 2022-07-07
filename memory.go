@@ -5,17 +5,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"image"
 )
 
 type Project struct {
-	Objects []*Object
+	Objects    []Object 	`json:"targets"`
 	// Monitor isn't implemented because even if there WAS an editor it's useless
-	Extensions []string
-}
-
-type ProjectJSON struct {
-	Objects    []ObjectJSON `json:"targets"`
 	Extensions []string     `json:"extensions"`
 }
 
@@ -30,45 +24,16 @@ type AcceptableValue interface {
 // What Scratch calls a "sprite"; we call it an object because that makes
 // more sense to a seasoned programmer
 type Object struct {
-	IsStage    bool
-	Name       string
-	Variables  map[string]Variable
-	Lists      map[string]List
-	Broadcasts map[string]string // no struct needed
-	Blocks     map[string]Block
-
-	Costumes             []Costume
-	Sounds               []Sound
-	Volume               float32
-	LayerOrder           float32
-	Tempo                float32
-	VideoTransparency    float32
-	VideoState           bool
-	TextToSpeechLanguage interface{} // todo: what is this
-	Position             Position
-	Size                 int16
-	Direction            int16
-	Draggable            bool
-	RotationStyle        string
-}
-
-type Position struct {
-	X, Y int16
-}
-
-// the json version(s) of this struct that we unmarshal from the json file,
-// and then convert to a safer struct
-type ObjectJSON struct {
 	IsStage 				bool   							`json:"isStage"`
 	Name    				string 							`json:"name"`
 	Variables  				map[string][]any             	`json:"variables"`
 	Lists      				map[string][]any             	`json:"lists"`
 	Broadcasts 				map[string]string 				`json:"broadcasts"`
-	Blocks     				map[string]BlockJSON            `json:"blocks"`
+	Blocks     				map[string]Block 	            `json:"blocks"`
 	// comments aren't implemented
 	CurrentCostume  		float32 						`json:"currentCostume"`
-	Costumes   				[]CostumeJSON                	`json:"costumes"`
-	Sounds     				[]SoundJSON              		`json:"sounds"`
+	Costumes   				[]Costume   	             	`json:"costumes"`
+	Sounds     				[]Sound  	            		`json:"sounds"`
 	Volume              	float32       					`json:"volume"`
 	LayerOrder           	float32       					`json:"layerOrder"`
 	Tempo                	float32       					`json:"tempo"`
@@ -103,16 +68,6 @@ type List struct {
 
 // A graphic in Scratch
 type Costume struct {
-	Asset           image.Image
-	Name            string
-	Resolution      int
-	MD5             string
-	Format          string
-	RotationCenterX float32
-	RotationCenterY float32
-}
-
-type CostumeJSON struct {
 	AssetId          string
 	Name             string
 	BitmapResolution int
@@ -124,15 +79,6 @@ type CostumeJSON struct {
 
 // A sound in Scratch
 type Sound struct {
-	Asset       []byte
-	Name        string
-	DataFormat  string
-	Rate        float32
-	SampleCount float32
-	MD5         string
-}
-
-type SoundJSON struct {
 	AssetId         string
 	Name            string
 	DataFormat      string
@@ -143,19 +89,6 @@ type SoundJSON struct {
 
 // A set of instructions in Scratch
 type Block struct {
-	Opcode      string
-	NextBlock   *Block
-	ParentBlock *Block
-	Inputs      []*Variable
-	Fields      []*Variable
-	Shadow      bool
-	TopLevel    bool
-	// position values aren't accounted for obvious reasons
-}
-
-// A struct for the json version of this that is usually translated to a
-// proper block
-type BlockJSON struct {
 	Opcode      string `json:"opcode"`
 	NextBlock   string `json:"next"`
 	ParentBlock string `json:"parent"`
@@ -167,16 +100,12 @@ type BlockJSON struct {
 
 func JSONToMemory(body []byte) (project *Project, err error) {
 	project = &Project{}
-
-
-	// first, 
-	projectJSON := &ProjectJSON{}
-	err = json.Unmarshal(body, projectJSON)
+	err = json.Unmarshal(body, project)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(projectJSON)
+	fmt.Println(project.Objects[0].Costumes)
 
 	return
 }
