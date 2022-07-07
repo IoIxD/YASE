@@ -5,9 +5,10 @@ import (
 )
 
 func main() {
-	_, err := GetProject()
+	project, err := GetProject()
 	if(err != nil) {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println(project)
 }

@@ -4,7 +4,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type Project struct {
@@ -68,34 +67,34 @@ type List struct {
 
 // A graphic in Scratch
 type Costume struct {
-	AssetId          string
-	Name             string
-	BitmapResolution int
-	MD5              string
-	DataFormat       string
-	RotationCenterX  float32
-	RotationCenterY  float32
+	AssetId          		string							`json:"assetId"`
+	Name             		string							`json:"name"`
+	BitmapResolution 		int 							`json:"bitmapResolution"`
+	MD5              		string 							`json:"md5ext"`
+	DataFormat       		string 							`json:"dataFormat"`
+	RotationCenterX  		float32 						`json:"rotationCenterX"`
+	RotationCenterY  		float32 						`json:"rotationCenterY"`
 }
 
 // A sound in Scratch
 type Sound struct {
-	AssetId         string
-	Name            string
-	DataFormat      string
-	Rate            float32
-	SampleCount     float32
-	MD5 			float32
+	AssetId         		string							`json:"assetId"`
+	Name            		string							`json:"name"`
+	DataFormat      		string							`json:"dataFormat"`
+	Rate            		float32 						`json:"rate"`
+	SampleCount     		float32 						`json:"sampleCount"`
+	MD5 					string 							`json:"md5ext"`
 }
 
 // A set of instructions in Scratch
 type Block struct {
-	Opcode      string `json:"opcode"`
-	NextBlock   string `json:"next"`
-	ParentBlock string `json:"parent"`
-	Inputs      map[string]any `json:"inputs"`
-	Fields      map[string]any `json:"fields"`
-	Shadow      bool `json:"shadow"`
-	TopLevel    bool `json:"topLevel"`
+	Opcode      			string 							`json:"opcode"`
+	NextBlock   			string 							`json:"next"`
+	ParentBlock 			string 							`json:"parent"`
+	Inputs      			map[string]any 					`json:"inputs"`
+	Fields      			map[string]any 					`json:"fields"`
+	Shadow      			bool 							`json:"shadow"`
+	TopLevel    			bool 							`json:"topLevel"`
 }
 
 func JSONToMemory(body []byte) (project *Project, err error) {
@@ -104,8 +103,6 @@ func JSONToMemory(body []byte) (project *Project, err error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(project.Objects[0].Costumes)
 
 	return
 }
