@@ -20,5 +20,8 @@
 # Go workspace file
 go.work
 
+# WASM
 web/*.wasm
-web/wasm_exec.js
+
+# LINUX
+YASE
