@@ -5,8 +5,6 @@ package core
 import (
 	"fmt"
 	"errors"
-
-	_ "github.com/IoIxD/YASE/core/assembly"
 )
 
 // Function for start execution of a project.
