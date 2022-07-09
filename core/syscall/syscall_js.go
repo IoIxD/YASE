@@ -1,12 +1,19 @@
 // +build js
 
-package assembly
+package syscall
 
 // File for any functions that "aren't implemented" on js but we can replicate them with js function calls, defined in index.html
 
 import (
 	"syscall/js"
 	"strings"
+)
+
+// while we're here, we have this variable here that sets the type of program we're compiling for, so that we can avoid having to split functions 
+// into different files so much
+
+const (
+	CompiledFor = "dynamic"
 )
 
 func ReadFile(name string) ([]byte, error) {

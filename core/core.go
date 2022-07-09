@@ -5,7 +5,13 @@ package core
 import (
 	"fmt"
 	"errors"
+	"os"
+	"syscall"
+	"os/signal"
 )
+
+var quitSignal 	chan bool
+
 
 // Function for start execution of a project.
 // todo: config struct
@@ -26,14 +32,26 @@ func Run() (err error) {
 			}
 		}
 	}
+	quitSignal := make(chan os.Signal)
+	signal.Notify(quitSignal, syscall.SIGINT, syscall.SIGTERM)
+	<-quitSignal
 	return nil
 }
+
 
 // Function for executing a given instruction.
 func (b *Block) Execute() (error) {
 	name := b.Opcode
 	switch(name) {
-		default: return errors.New(fmt.Sprintf("Unimplemented opcode %v",name))
+		case opcodeFlagClicked:					go b.OnFlagClick()
+		case opcodeKeyClicked: 					go b.OnKeyClick()
+		case opcodeObjectClicked:  				go b.OnObjectClick()
+		case opcodeBackdropSwitched:  			go b.OnBackdropSwitch()
+		case opcodeVariableGreaterThen: 		go b.OnVariableGreaterThen()
+		case opcodeBroadcastRecieved: 			go b.OnBroadcast()
+		case opcodeStageClicked:  				go b.OnStageClick()
+		case opcodeBroadcast: 					b.Broadcast()
+		default: 								return errors.New(fmt.Sprintf("Unimplemented opcode %v",name))
 	}
 	return nil
 }
