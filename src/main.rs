@@ -1,6 +1,6 @@
-pub mod scratch;
+pub mod decomp;
 
 fn main() {
-    let project = scratch::Project::new(None);
+    let project = decomp::Project::new(None);
     println!("{:#?}",project);
 }

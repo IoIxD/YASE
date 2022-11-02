@@ -3,7 +3,8 @@
 
 // Decompiler for Scratch games that Rust can understand and translate.
 
-use std::{collections::HashMap, fs::read_to_string, fmt, marker::PhantomData};
+use std::{collections::HashMap, fs::read_to_string};
+use serde::{Deserialize, Deserializer};
 use serde_derive::Deserialize;
 use serde_json::Value;
 
@@ -23,7 +24,7 @@ pub struct Object{
     #[serde(default)]
     name: String,
     #[serde(default)]
-    variables: HashMap<String, Value>,
+    variables: HashMap<String, Variable>,
     #[serde(default)]
     lists: HashMap<String, Vec<Value>>,
     #[serde(default)]
@@ -109,6 +110,12 @@ pub struct Block{
     parent: Object,
 }
 
+#[derive(Debug)]
+pub struct Variable {
+    name: String,
+    value: Value,
+}
+
 impl Project {
     pub fn new(id: Option<i32>) -> Result<Project, String> {
         let json: String = match id {
@@ -137,5 +144,21 @@ impl Project {
             Err(err) => {return Err(format!("error unmarshalling json to project: {}",err));}
         };
         Ok(project)
+    }
+}
+
+impl<'de> Deserialize<'de> for Variable {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error>{
+        let v: Vec<Value> = Vec::deserialize(d)?;
+        let mut vi = v.into_iter();
+        let name = vi.next();
+        let value = vi.next();
+        let fuck: Variable = Variable {
+            // doing this without unwrap isn't possible because rust
+            // complains about referencing a which falls out of scope
+            name: name.unwrap().to_string().replace("\"", ""),
+            value: value.unwrap(),
+        };
+        return Ok(fuck);
     }
 }
