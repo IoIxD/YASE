@@ -112,8 +112,6 @@ pub struct Block<'a>{
     shadow: bool,
     #[serde(default)]
     top_level: bool,
-    #[serde(default)]
-    parent: Sprite<'a>,
 }
 
 impl<'a> Block<'a> {
