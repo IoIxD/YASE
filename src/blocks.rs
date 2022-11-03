@@ -1,4 +1,9 @@
+use std::collections::HashMap;
+
 #[allow(dead_code)]
+
+use serde::{Deserialize, Deserializer ,de};
+use serde_json::Value as SerdeValue;
 
 /// Enums and structs that represent certain types of blocks in Scratch.
 ///
@@ -11,12 +16,13 @@
 ///
 
 /// Either a number or a String, the latter signifying a pointer to another block.
-enum Value {
+#[derive(Debug,Clone)]
+pub enum Value {
     Number(f64),
     String(String),
 }
-
-enum BlockType {
+#[derive(Debug,Clone)]
+pub enum BlockType {
     // Motion blocks
 
     /// move _ steps
@@ -153,217 +159,217 @@ enum BlockType {
 //
 // Motion Blocks
 //
-
-struct Move {
+#[derive(Debug,Clone)]
+pub struct Move {
     steps: Value
 }
-
-struct Rotate {
+#[derive(Debug,Clone)]
+pub struct Rotate {
     degrees: Value
 }
-
-enum MovementOption {
+#[derive(Debug,Clone)]
+pub enum MovementOption {
     RandomPosition,
     MousePointer,
 }
-
-enum Goto {
+#[derive(Debug,Clone)]
+pub enum Goto {
     Pos(GotoPos),
     Option(GotoOption),
 }
-
-struct GotoPos {
+#[derive(Debug,Clone)]
+pub struct GotoPos {
     x: Option<String>,
     y: Option<String>,
 }
-
-struct GotoOption {
+#[derive(Debug,Clone)]
+pub struct GotoOption {
     option: MovementOption,
 }
-
-enum Glide {
+#[derive(Debug,Clone)]
+pub enum Glide {
     Pos(GlidePos),
     Option(GlideOption),
 }
-
-struct GlidePos {
+#[derive(Debug,Clone)]
+pub struct GlidePos {
     x: Option<Value>,
     y: Option<Value>,
 }
-
-struct GlideOption {
+#[derive(Debug,Clone)]
+pub struct GlideOption {
     option: MovementOption,
 }
-
-enum Point {
+#[derive(Debug,Clone)]
+pub enum Point {
     Direction(PointDirection),
     Towards(PointOption),
 }
-
-struct PointDirection {
+#[derive(Debug,Clone)]
+pub struct PointDirection {
     x: Option<Value>,
     y: Option<Value>,
 }
-
-struct PointOption {
+#[derive(Debug,Clone)]
+pub struct PointOption {
     option: MovementOption,
 }
-
-struct ChangeX {
+#[derive(Debug,Clone)]
+pub struct ChangeX {
     x: Value
 }
-
-struct SetX {
+#[derive(Debug,Clone)]
+pub struct SetX {
     x: Value
 }
-
-struct ChangeY {
+#[derive(Debug,Clone)]
+pub struct ChangeY {
     y: Value
 }
-
-struct SetY {
+#[derive(Debug,Clone)]
+pub struct SetY {
     y: Value
 }
-
-struct IfOnEdgeBounce {}
-
-enum RotationStyle {
+#[derive(Debug,Clone)]
+pub struct IfOnEdgeBounce {}
+#[derive(Debug,Clone)]
+pub enum RotationStyle {
     LeftRight,
     DontRotate,
     AllAround,
 }
-
-struct SetRotationStyle {
+#[derive(Debug,Clone)]
+pub struct SetRotationStyle {
     style: RotationStyle
 }
-
-struct XPosition;
-struct YPosition;
-struct Direction;
+#[derive(Debug,Clone)]
+pub struct XPosition;#[derive(Debug,Clone)]
+pub struct YPosition;#[derive(Debug,Clone)]
+pub struct Direction;
 
 //
 // Look blocks
 //
-
-struct SayForever {
+#[derive(Debug,Clone)]
+pub struct SayForever {
     message: String,
 }
-
-struct Say {
-    message: String,
-    secs: Option<String>
-}
-
-struct Think {
+#[derive(Debug,Clone)]
+pub struct Say {
     message: String,
     secs: Option<String>
 }
-
-struct SwitchCostume {
+#[derive(Debug,Clone)]
+pub struct Think {
+    message: String,
+    secs: Option<String>
+}
+#[derive(Debug,Clone)]
+pub struct SwitchCostume {
     costume: Option<String>,
 }
-
-struct NextCostume;
-
-struct SwitchBackdrop {
+#[derive(Debug,Clone)]
+pub struct NextCostume;
+#[derive(Debug,Clone)]
+pub struct SwitchBackdrop {
     backdrop: Option<String>,
 }
-
-struct NextBackdrop;
-
-struct ChangeSize {
+#[derive(Debug,Clone)]
+pub struct NextBackdrop;
+#[derive(Debug,Clone)]
+pub struct ChangeSize {
     units: Option<Value>,
 }
-
-struct SetSize {
+#[derive(Debug,Clone)]
+pub struct SetSize {
     percentage: Option<Value>,
 }
-
-struct ClearGraphicEffects;
-struct ShowSprite;
-struct HideSprite;
-
-enum LayerOption {
+#[derive(Debug,Clone)]
+pub struct ClearGraphicEffects;#[derive(Debug,Clone)]
+pub struct ShowSprite;#[derive(Debug,Clone)]
+pub struct HideSprite;
+#[derive(Debug,Clone)]
+pub enum LayerOption {
     Front,
     Back,
 }
-
-struct GotoLayer {
+#[derive(Debug,Clone)]
+pub struct GotoLayer {
     option: LayerOption
 }
-
-enum LayerDirection {
+#[derive(Debug,Clone)]
+pub enum LayerDirection {
     Forward,
     Backward,
 }
-
-struct ChangeLayer {
+#[derive(Debug,Clone)]
+pub struct ChangeLayer {
     direction: LayerDirection,
     by: i32,
 }
-
-enum Costume {
+#[derive(Debug,Clone)]
+pub enum Costume {
     ByNumber(CostumeByNumber),
     ByName(CostumeByName)
 }
-
-struct CostumeByNumber;
-struct CostumeByName;
-
-enum Backdrop {
+#[derive(Debug,Clone)]
+pub struct CostumeByNumber;#[derive(Debug,Clone)]
+pub struct CostumeByName;
+#[derive(Debug,Clone)]
+pub enum Backdrop {
     ByNumber(BackdropByNumber),
     ByName(BackdropByName)
 }
-
-struct BackdropByNumber;
-struct BackdropByName;
-
-struct Size;
+#[derive(Debug,Clone)]
+pub struct BackdropByNumber;#[derive(Debug,Clone)]
+pub struct BackdropByName;
+#[derive(Debug,Clone)]
+pub struct Size;
 
 //
 // Sound blocks
 //
-
-struct PlaySoundUntilDone {
+#[derive(Debug,Clone)]
+pub struct PlaySoundUntilDone {
     sound: String
 }
-
-struct StartSound {
+#[derive(Debug,Clone)]
+pub struct StartSound {
     sound: String,
 }
-
-struct StopAllSounds;
-
-enum SoundEffect {
+#[derive(Debug,Clone)]
+pub struct StopAllSounds;
+#[derive(Debug,Clone)]
+pub enum SoundEffect {
     Pitch,
     Pan
 }
-
-struct ChangeEffectBy {
+#[derive(Debug,Clone)]
+pub struct ChangeEffectBy {
     effect: SoundEffect,
     units: Option<Value>,
 }
-
-struct SetEffectTo {
+#[derive(Debug,Clone)]
+pub struct SetEffectTo {
     effect: SoundEffect,
     percentage: Option<Value>,
 }
-
-struct ChangeVolumeBy {
+#[derive(Debug,Clone)]
+pub struct ChangeVolumeBy {
     units: Option<Value>,
 }
-
-struct SetVolumeTo {
+#[derive(Debug,Clone)]
+pub struct SetVolumeTo {
     percentage: Option<Value>,
 }
-
-struct Volume;
+#[derive(Debug,Clone)]
+pub struct Volume;
 
 // Event blocks
-
-struct WhenGreenFlagClicked;
-
-enum Key {
+#[derive(Debug,Clone)]
+pub struct WhenGreenFlagClicked;
+#[derive(Debug,Clone)]
+pub enum Key {
     LeftArrow,
     UpArrow,
     RightArrow,
@@ -372,147 +378,147 @@ enum Key {
     /// Any character from a-z and 0-9
     Alphanumerical(char),
 }
-
-struct WhenKeyClicked {
+#[derive(Debug,Clone)]
+pub struct WhenKeyClicked {
     key: Key,
 }
-
-struct WhenSpriteClicked;
-struct WhenBackdropSwitchesTo {
+#[derive(Debug,Clone)]
+pub struct WhenSpriteClicked;#[derive(Debug,Clone)]
+pub struct WhenBackdropSwitchesTo {
     backdrop: String,
 }
-
-enum EventOption {
+#[derive(Debug,Clone)]
+pub enum EventOption {
     Loudness,
     Timer
 }
-
-struct WhenOptionGreaterThen {
+#[derive(Debug,Clone)]
+pub struct WhenOptionGreaterThen {
     option: EventOption,
     by: Option<Value>,
 }
-
-struct WhenIRecieveBroadcast {
+#[derive(Debug,Clone)]
+pub struct WhenIRecieveBroadcast {
     broadcast: String,
 }
-
-struct Broadcast {
+#[derive(Debug,Clone)]
+pub struct Broadcast {
     broadcast: String,
 }
-
-struct BroadcastAndWait {
+#[derive(Debug,Clone)]
+pub struct BroadcastAndWait {
     broadcast: String,
 }
 
 //
 // Control
 //
-
-struct WaitSeconds {
+#[derive(Debug,Clone)]
+pub struct WaitSeconds {
     seconds: Option<Value>,
 }
-
-struct Repeat {
+#[derive(Debug,Clone)]
+pub struct Repeat {
     units: Option<Value>,
 }
-
-struct Forever;
-
-struct IfThen {
+#[derive(Debug,Clone)]
+pub struct Forever;
+#[derive(Debug,Clone)]
+pub struct IfThen {
     condition: Option<String>,
     then: Option<String>,
 }
-
-struct IfThenElse {
+#[derive(Debug,Clone)]
+pub struct IfThenElse {
     condition: Option<String>,
     then: Option<String>,
     otherwise: Option<String>,
 }
-
-struct WaitUntil {
+#[derive(Debug,Clone)]
+pub struct WaitUntil {
     condition: Option<String>,
 }
-
-struct RepeatUntil {
+#[derive(Debug,Clone)]
+pub struct RepeatUntil {
     condition: Option<String>,
 }
-
-struct StopAll;
-
-struct WhenIStartAsAClone;
-
-enum SpriteOption {
+#[derive(Debug,Clone)]
+pub struct StopAll;
+#[derive(Debug,Clone)]
+pub struct WhenIStartAsAClone;
+#[derive(Debug,Clone)]
+pub enum SpriteOption {
     Myself,
     Sprite(String),
 }
-
-struct CreateCloneOf {
+#[derive(Debug,Clone)]
+pub struct CreateCloneOf {
     of: SpriteOption,
 }
-
-struct DeleteClone;
+#[derive(Debug,Clone)]
+pub struct DeleteClone;
 
 // Sensing blocks
-
-enum SensingOption {
+#[derive(Debug,Clone)]
+pub enum SensingOption {
     MousePointer,
     Edge,
     Sprite(String)
 }
-
-struct Touching {
+#[derive(Debug,Clone)]
+pub struct Touching {
     touching: SensingOption
 }
-
-struct TouchingColor {
+#[derive(Debug,Clone)]
+pub struct TouchingColor {
     color: String,
 }
-
-struct ColorTouchingColor {
+#[derive(Debug,Clone)]
+pub struct ColorTouchingColor {
     color1: String,
     color2: String,
 }
-
-struct DistanceTo {
+#[derive(Debug,Clone)]
+pub struct DistanceTo {
     to: SensingOption
 }
-
-struct Answer;
-
-struct KeyPressed {
+#[derive(Debug,Clone)]
+pub struct Answer;
+#[derive(Debug,Clone)]
+pub struct KeyPressed {
     key: Key
 }
-
-struct MouseDown;
-struct MouseX;
-struct MouseY;
-
-enum DraggableOption {
+#[derive(Debug,Clone)]
+pub struct MouseDown;#[derive(Debug,Clone)]
+pub struct MouseX;#[derive(Debug,Clone)]
+pub struct MouseY;
+#[derive(Debug,Clone)]
+pub enum DraggableOption {
     Draggable,
     NotDraggable
 }
-
-struct SetDragMode {
+#[derive(Debug,Clone)]
+pub struct SetDragMode {
     option: DraggableOption,
 }
-
-struct Loudness;
-struct Timer;
-
-struct ResetTimer;
-
-enum BackdropOfOption {
+#[derive(Debug,Clone)]
+pub struct Loudness;#[derive(Debug,Clone)]
+pub struct Timer;
+#[derive(Debug,Clone)]
+pub struct ResetTimer;
+#[derive(Debug,Clone)]
+pub enum BackdropOfOption {
     BackdropNumber,
     BackdropName,
     Volume,
     MyVariable,
 }
-
-struct BackdropOf {
+#[derive(Debug,Clone)]
+pub struct BackdropOf {
     backdrop: BackdropOfOption,
 }
-
-enum CurrentTimeOption {
+#[derive(Debug,Clone)]
+pub enum CurrentTimeOption {
     Year,
     Month,
     Date,
@@ -521,104 +527,134 @@ enum CurrentTimeOption {
     Minute,
     Second,
 }
-
-struct CurrentTime {
+#[derive(Debug,Clone)]
+pub struct CurrentTime {
     option: CurrentTimeOption
 }
-
-struct DaysSince2000;
-struct Username;
+#[derive(Debug,Clone)]
+pub struct DaysSince2000;#[derive(Debug,Clone)]
+pub struct Username;
 
 //
 // Operators
 //
-
-struct Add {
+#[derive(Debug,Clone)]
+pub struct Add {
     a: Value,
     b: Value,
 }
-
-struct Sub {
+#[derive(Debug,Clone)]
+pub struct Sub {
     a: Value,
     b: Value,
 }
-
-struct Mul {
+#[derive(Debug,Clone)]
+pub struct Mul {
     a: Value,
     b: Value,
 }
-
-struct Divide {
+#[derive(Debug,Clone)]
+pub struct Divide {
     a: Value,
     b: Value,
 }
-
-struct PickRandom {
+#[derive(Debug,Clone)]
+pub struct PickRandom {
     min: Value,
     max: Value,
 }
-
-struct GreaterThen {
+#[derive(Debug,Clone)]
+pub struct GreaterThen {
     a: Value,
     b: Value,
 }
-
-struct LesserThen {
+#[derive(Debug,Clone)]
+pub struct LesserThen {
     a: Value,
     b: Value,
 }
-
-struct EqualTo {
+#[derive(Debug,Clone)]
+pub struct EqualTo {
     a: Value,
     b: Value,
 }
-
-struct And {
+#[derive(Debug,Clone)]
+pub struct And {
     a: Value,
     b: Value,
 }
-
-struct Or {
+#[derive(Debug,Clone)]
+pub struct Or {
     a: Value,
     b: Value,
 }
-
-struct Not {
+#[derive(Debug,Clone)]
+pub struct Not {
     a: Value,
 }
-
-struct Join {
+#[derive(Debug,Clone)]
+pub struct Join {
     a: Value,
     b: Value,
 }
-
-struct LetterOf {
+#[derive(Debug,Clone)]
+pub struct LetterOf {
     index: Value,
     a: Value,
 }
-
-struct LengthOf {
+#[derive(Debug,Clone)]
+pub struct LengthOf {
     a: Value,
 }
-
-struct Contains {
-    a: Value,
-    b: Value,
-}
-
-struct Modulo {
+#[derive(Debug,Clone)]
+pub struct Contains {
     a: Value,
     b: Value,
 }
-
-struct Round {
+#[derive(Debug,Clone)]
+pub struct Modulo {
+    a: Value,
+    b: Value,
+}
+#[derive(Debug,Clone)]
+pub struct Round {
     a: Value,
 }
-
-struct Absolute {
+#[derive(Debug,Clone)]
+pub struct Absolute {
     a: Value,
 }
 
 // Variables
 
-// FUCK.
+// todo
+
+// Deserializiation implementation
+
+impl<'de> Deserialize<'de> for BlockType {
+    fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error>{
+        let v: HashMap<String, SerdeValue> = HashMap::deserialize(d)?;
+
+        match v.get_key_value("opcode") {
+            Some(a) => {
+                let name: &String = match a.1 {
+                    SerdeValue::String(a) => a,
+                    _ => {
+                        return Err(format!("not a string: {}",a.1)).map_err(de::Error::custom);
+                    }
+                };
+                match &*name.to_string() {
+                    "event_whenflagclicked" => {
+                        Ok(BlockType::WhenGreenFlagClicked(WhenGreenFlagClicked{}))
+                    }
+                    _ => {
+                        return Err(format!("invalid opcode {}",a.1)).map_err(de::Error::custom);
+                    }
+                }
+            },
+            None => {
+                return Err("no opcode").map_err(de::Error::custom);
+            },
+        }
+    }
+}

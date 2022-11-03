@@ -8,17 +8,19 @@ use serde::{Deserialize, Deserializer};
 use serde_derive::Deserialize;
 use serde_json::Value;
 
+use crate::blocks;
+
 #[derive(Debug, Deserialize, Default, Clone)]
-pub struct Project<'a>{
+pub struct Project{
     #[serde(rename = "targets")]
     #[serde(default)]
-    sprites: Vec<Sprite<'a>>,
+    sprites: Vec<Sprite>,
     #[serde(default)]
     extensions: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
-pub struct Sprite<'a>{
+pub struct Sprite{
     #[serde(default)]
     is_stage: bool,
     #[serde(default)]
@@ -30,7 +32,7 @@ pub struct Sprite<'a>{
     #[serde(default)]
     broadcasts: HashMap<String, String>,
     #[serde(default)]
-    blocks: HashMap<String, Block<'a>>,
+    blocks: HashMap<String, blocks::BlockType>,
     #[serde(default)]
     current_costume: f32,
     #[serde(default)]
@@ -65,6 +67,7 @@ pub struct Sprite<'a>{
 
 #[derive(Debug, Deserialize, Default, Clone)]
 pub struct Costume {
+    #[serde(rename = "assetId")]
     #[serde(default)]
     asset_id: String,
     #[serde(default)]
@@ -83,44 +86,16 @@ pub struct Costume {
 
 #[derive(Debug, Deserialize, Default, Clone)]
 pub struct Sound {
+    #[serde(rename = "assetId")]
     asset_id: String,
     name: String,
+    #[serde(rename = "dataFormat")]
     data_format: String,
     rate: f32,
+    #[serde(rename = "sampleCount")]
     sample_count: f32,
+    #[serde(rename = "md5ext")]
     md5: String,
-}
-
-#[derive(Debug, Deserialize, Default, Clone)]
-pub struct Block<'a>{
-    opcode: String,
-    #[serde(rename = "next")]
-    next_block_pointer: Option<String>,
-    #[serde(rename = "parent")]
-    parent_block_pointer: Option<String>,
-
-    #[serde(skip_deserializing)]
-    next_block: Option<&'a Block<'a>>,
-    #[serde(skip_deserializing)]
-    parent_block: Option<&'a Block<'a>>,
-
-    #[serde(default)]
-    inputs: HashMap<String, Value>,
-    #[serde(default)]
-    fields: HashMap<String, Value>,
-    #[serde(default)]
-    shadow: bool,
-    #[serde(default)]
-    top_level: bool,
-}
-
-impl<'a> Block<'a> {
-    fn set_parent(&mut self, parent: &'a Block) {
-        self.parent_block = Some(parent);
-    }
-    fn set_next(&mut self, next: &'a Block) {
-        self.next_block = Some(next);
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -129,8 +104,8 @@ pub struct Variable {
     value: Value,
 }
 
-impl<'a> Project<'a> {
-    pub fn new(id: Option<i32>) -> Result<Project<'a>, String> {
+impl Project {
+    pub fn new(id: Option<i32>) -> Result<Project, String> {
         let json: String = match id {
             Some(a) => {
                 match reqwest::blocking::get(
@@ -178,4 +153,3 @@ impl<'de> Deserialize<'de> for Variable {
         return Ok(fuck);
     }
 }
-
