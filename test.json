@@ -353,7 +353,7 @@
         },
         "T;%eBw9`25Wc}W3y[nmL": {
           "opcode": "motion_setrotationstyle",
-          "next": "x8*{UEp]Ul3hLFx}QSd|",
+          "next": "!F2SRH=%E|;bojRKAA-X",
           "parent": "hnaIxl@:Obuggjl%PlHJ",
           "inputs": {},
           "fields": {
@@ -368,7 +368,7 @@
         "x8*{UEp]Ul3hLFx}QSd|": {
           "opcode": "motion_sety",
           "next": "L/q`DNEZ@H]9~.v-_LaF",
-          "parent": "T;%eBw9`25Wc}W3y[nmL",
+          "parent": "=[cR@i+;[Qr$r`NC#M+Q",
           "inputs": {
             "Y": [
               3,
@@ -1325,6 +1325,34 @@
           "parent": "GYaT#H7OKyy*gi}H3Z1G",
           "inputs": {},
           "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "!F2SRH=%E|;bojRKAA-X": {
+          "opcode": "motion_setrotationstyle",
+          "next": "=[cR@i+;[Qr$r`NC#M+Q",
+          "parent": "T;%eBw9`25Wc}W3y[nmL",
+          "inputs": {},
+          "fields": {
+            "STYLE": [
+              "don't rotate",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "=[cR@i+;[Qr$r`NC#M+Q": {
+          "opcode": "motion_setrotationstyle",
+          "next": "x8*{UEp]Ul3hLFx}QSd|",
+          "parent": "!F2SRH=%E|;bojRKAA-X",
+          "inputs": {},
+          "fields": {
+            "STYLE": [
+              "all around",
+              null
+            ]
+          },
           "shadow": false,
           "topLevel": false
         }

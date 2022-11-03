@@ -1,5 +1,5 @@
 pub mod decomp;
-pub mod block;
+pub mod blocks;
 
 fn main() {
     let project = decomp::Project::new(None);
