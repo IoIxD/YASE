@@ -12,13 +12,13 @@ use serde_json::Value;
 pub struct Project<'a>{
     #[serde(rename = "targets")]
     #[serde(default)]
-    objects: Vec<Object<'a>>,
+    sprites: Vec<Sprite<'a>>,
     #[serde(default)]
     extensions: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
-pub struct Object<'a>{
+pub struct Sprite<'a>{
     #[serde(default)]
     is_stage: bool,
     #[serde(default)]
@@ -113,7 +113,7 @@ pub struct Block<'a>{
     #[serde(default)]
     top_level: bool,
     #[serde(default)]
-    parent: Object<'a>,
+    parent: Sprite<'a>,
 }
 
 impl<'a> Block<'a> {
@@ -180,3 +180,4 @@ impl<'de> Deserialize<'de> for Variable {
         return Ok(fuck);
     }
 }
+
