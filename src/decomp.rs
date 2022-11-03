@@ -161,32 +161,6 @@ impl<'a> Project<'a> {
             Err(err) => {return Err(format!("error unmarshalling json to project: {}",err));}
         };
 
-        // we now want to go through every block and set the pointers appropriately.
-        let mut objects = project.objects.into_iter();
-        // this hangs btw but the borrow checker won't let me do it the proper way
-        while let Some(mut object) = objects.next() {
-            let blocks = &mut object.blocks;
-            let blocks_clone = blocks.clone();
-            let mut i = 0;
-            let block = blocks.values_mut().next();
-            match block {
-                Some(a) => {
-                    let block = a;
-                    let block_clone = block.clone();
-                    let parent = &block_clone.parent_block_pointer;
-                    let next = &block_clone.next_block_pointer;
-                    if let Some(parent) = parent {
-                        block.set_parent(blocks_clone.get(parent).unwrap());
-                    }
-                    if let Some(next) = parent {
-                        block.set_next(blocks_clone.get(next).unwrap());
-                    }
-                    i += 1;
-                }
-                None => continue,
-            }
-        }
-
         Ok(project)
     }
 }
