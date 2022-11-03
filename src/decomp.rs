@@ -8,17 +8,17 @@ use serde::{Deserialize, Deserializer};
 use serde_derive::Deserialize;
 use serde_json::Value;
 
-#[derive(Debug, Deserialize, Default)]
-pub struct Project{
+#[derive(Debug, Deserialize, Default, Clone)]
+pub struct Project<'a>{
     #[serde(rename = "targets")]
     #[serde(default)]
-    objects: Vec<Object>,
+    objects: Vec<Object<'a>>,
     #[serde(default)]
     extensions: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Default)]
-pub struct Object{
+#[derive(Debug, Deserialize, Default, Clone)]
+pub struct Object<'a>{
     #[serde(default)]
     is_stage: bool,
     #[serde(default)]
@@ -30,7 +30,7 @@ pub struct Object{
     #[serde(default)]
     broadcasts: HashMap<String, String>,
     #[serde(default)]
-    blocks: HashMap<String, Block>,
+    blocks: HashMap<String, Block<'a>>,
     #[serde(default)]
     current_costume: f32,
     #[serde(default)]
@@ -63,7 +63,7 @@ pub struct Object{
     rotation_style: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 pub struct Costume {
     #[serde(default)]
     asset_id: String,
@@ -81,7 +81,7 @@ pub struct Costume {
     rotation_center_y: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize, Default, Clone)]
 pub struct Sound {
     asset_id: String,
     name: String,
@@ -91,13 +91,19 @@ pub struct Sound {
     md5: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
-pub struct Block{
+#[derive(Debug, Deserialize, Default, Clone)]
+pub struct Block<'a>{
     opcode: String,
     #[serde(rename = "next")]
     next_block_pointer: Option<String>,
     #[serde(rename = "parent")]
     parent_block_pointer: Option<String>,
+
+    #[serde(skip_deserializing)]
+    next_block: Option<&'a Block<'a>>,
+    #[serde(skip_deserializing)]
+    parent_block: Option<&'a Block<'a>>,
+
     #[serde(default)]
     inputs: HashMap<String, Value>,
     #[serde(default)]
@@ -107,17 +113,26 @@ pub struct Block{
     #[serde(default)]
     top_level: bool,
     #[serde(default)]
-    parent: Object,
+    parent: Object<'a>,
 }
 
-#[derive(Debug)]
+impl<'a> Block<'a> {
+    fn set_parent(&mut self, parent: &'a Block) {
+        self.parent_block = Some(parent);
+    }
+    fn set_next(&mut self, next: &'a Block) {
+        self.next_block = Some(next);
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Variable {
     name: String,
     value: Value,
 }
 
-impl Project {
-    pub fn new(id: Option<i32>) -> Result<Project, String> {
+impl<'a> Project<'a> {
+    pub fn new(id: Option<i32>) -> Result<Project<'a>, String> {
         let json: String = match id {
             Some(a) => {
                 match reqwest::blocking::get(
@@ -139,10 +154,39 @@ impl Project {
                 }
             }
         };
+
+        // base project
         let project: Project = match serde_json::from_str(&json) {
             Ok(a) => a,
             Err(err) => {return Err(format!("error unmarshalling json to project: {}",err));}
         };
+
+        // we now want to go through every block and set the pointers appropriately.
+        let mut objects = project.objects.into_iter();
+        // this hangs btw but the borrow checker won't let me do it the proper way
+        while let Some(mut object) = objects.next() {
+            let blocks = &mut object.blocks;
+            let blocks_clone = blocks.clone();
+            let mut i = 0;
+            let block = blocks.values_mut().next();
+            match block {
+                Some(a) => {
+                    let block = a;
+                    let block_clone = block.clone();
+                    let parent = &block_clone.parent_block_pointer;
+                    let next = &block_clone.next_block_pointer;
+                    if let Some(parent) = parent {
+                        block.set_parent(blocks_clone.get(parent).unwrap());
+                    }
+                    if let Some(next) = parent {
+                        block.set_next(blocks_clone.get(next).unwrap());
+                    }
+                    i += 1;
+                }
+                None => continue,
+            }
+        }
+
         Ok(project)
     }
 }
