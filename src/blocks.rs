@@ -1,19 +1,42 @@
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
 #[allow(dead_code)]
 
 use serde::{Deserialize, Deserializer ,de};
-use serde_json::Value as SerdeValue;
+use serde_json::{Value as SerdeValue};
+use lazy_static::lazy_static;
+use regex::Regex;
+use crate::block_names;
 
 /// Enums and structs that represent certain types of blocks in Scratch.
 ///
 /// It should be noted that the following rules are applied when translating
 /// these blocks:
-/// - Blocks that can mimmicked by other blocks are combined. For example, "turn clockwise" and "turn counterclickwise" are combined into one "turn block", and the library will present the latter block with a negative number.
 /// - Blocks that are the same but with a different argument are represented by an enum that leads to the respective types. For example, "goto <option>" and "goto "<x, y>" are one "goto" enum with a "Pos" and "Option" option.
 /// - Since there's no logic here, Scratch's "sprite globals" i.e. "x position" are also represented by structs, and its up to you to resolve them. This also goes for functions with no arguments such as "next costume"
 /// - Some blocks have special cases where things are combined. Those are documented as such.
 ///
+
+/// IDs that tell us whether a block has a shadow or not, according to Scratch's deserialization code
+pub enum Inputs {
+    SameBlockShadow = 1,
+    BlockNoShadow = 2,
+    DiffBlockShadow = 3,
+}
+
+/// IDs that distinquish different primitives.
+pub enum Primitives {
+    MathNum = 4,
+    PositiveNum = 5,
+    WholeNum = 6,
+    IntegerNum = 7,
+    AngleNum = 8,
+    ColorPicker = 9,
+    Text = 10,
+    Broadcast = 11,
+    Var = 12,
+    List = 13,
+}
 
 /// Either a number or a String, the latter signifying a pointer to another block.
 #[derive(Debug,Clone)]
@@ -27,9 +50,11 @@ pub enum BlockType {
 
     /// move _ steps
     Move(Move),
-    /// turn clockwise or counterclockwise _ degrees.
+    /// turn counterclockwise _ degrees.
     /// counterclockwise is represented by a negative number
-    Rotate(Rotate),
+    RotateLeft(RotateLeft),
+    /// turn clockwise _ degrees.
+    RotateRight(RotateRight),
     /// goto a MovementOption, or an x and y coordinate.
     Goto(Goto),
     /// glide to a MovementOption, or an x and y coordinate.
@@ -58,16 +83,20 @@ pub enum BlockType {
     // Look blocks
 
     Say(Say),
+    SayForever(SayForever),
     Think(Think),
+    ThinkForever(ThinkForever),
     SwitchCostume(SwitchCostume),
     NextCostume(NextCostume),
     SwitchBackdrop(SwitchBackdrop),
+    SwitchBackdropAndWait(SwitchBackdropAndWait),
     NextBackdrop(NextBackdrop),
     ChangeSize(ChangeSize),
     SetSize(SetSize),
     ClearGraphicEffects(ClearGraphicEffects),
     ShowSprite(ShowSprite),
     HideSprite(HideSprite),
+    HideAllSprites(HideAllSprites),
     GotoLayer(GotoLayer),
     ChangeLayer(ChangeLayer),
     Costume(Costume),
@@ -76,20 +105,23 @@ pub enum BlockType {
 
     // Sound blocks
 
+    PlaySound(PlaySound),
     PlaySoundUntilDone(PlaySoundUntilDone),
     StartSound(StartSound),
     StopAllSounds(StopAllSounds),
     ChangeEffectBy(ChangeEffectBy),
     SetEffectTo(SetEffectTo),
+    ClearSoundEffects(ClearSoundEffects),
     ChangeVolumeBy(ChangeVolumeBy),
-    SetVolumeTo(ChangeVolumeBy),
+    SetVolumeTo(SetVolumeTo),
     Volume(Volume),
 
     // Event blocks
 
     WhenGreenFlagClicked(WhenGreenFlagClicked),
-    WhenKeyClicked(WhenKeyClicked),
+    WhenKeyPressed(WhenKeyPressed),
     WhenSpriteClicked(WhenSpriteClicked),
+    WhenStageClicked(WhenStageClicked),
     WhenBackdropSwitchesTo(WhenBackdropSwitchesTo),
     WhenOptionGreaterThen(WhenOptionGreaterThen),
     WhenIRecieveBroadcast(WhenIRecieveBroadcast),
@@ -130,11 +162,9 @@ pub enum BlockType {
     CurrentTime(CurrentTime),
     DaysSince2000(DaysSince2000),
     Username(Username),
-    
-    //
+
     // Operator blocks
-    //
-    
+
     Add(Add),
     Sub(Sub),
     Mul(Mul),
@@ -154,6 +184,7 @@ pub enum BlockType {
     Round(Round),
     Absolute(Absolute),
 
+    InvalidOpcode(InvalidOpcode),
 }
 
 //
@@ -161,17 +192,39 @@ pub enum BlockType {
 //
 #[derive(Debug,Clone)]
 pub struct Move {
-    steps: Value
+    steps: Option<Value>
 }
 #[derive(Debug,Clone)]
-pub struct Rotate {
-    degrees: Value
+pub struct RotateLeft {
+    degrees: Option<Value>
+}
+#[derive(Debug,Clone)]
+pub struct RotateRight {
+    degrees: Option<Value>
 }
 #[derive(Debug,Clone)]
 pub enum MovementOption {
     RandomPosition,
     MousePointer,
 }
+impl MovementOption {
+    fn from(val: Option<Value>) -> Option<MovementOption> {
+        match val {
+            Some(a) => {
+                match a {
+                    Value::String(a) => match a.as_str() {
+                        "_random_" => Some(Self::RandomPosition),
+                        "_mouse_" => Some(Self::MousePointer),
+                        _ => None,
+                    },
+                    _ => None
+                }
+            }
+            None => None,
+        }
+    }
+}
+
 #[derive(Debug,Clone)]
 pub enum Goto {
     Pos(GotoPos),
@@ -179,12 +232,12 @@ pub enum Goto {
 }
 #[derive(Debug,Clone)]
 pub struct GotoPos {
-    x: Option<String>,
-    y: Option<String>,
+    x: Option<Value>,
+    y: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct GotoOption {
-    option: MovementOption,
+    option: Option<MovementOption>,
 }
 #[derive(Debug,Clone)]
 pub enum Glide {
@@ -198,7 +251,7 @@ pub struct GlidePos {
 }
 #[derive(Debug,Clone)]
 pub struct GlideOption {
-    option: MovementOption,
+    option: Option<MovementOption>,
 }
 #[derive(Debug,Clone)]
 pub enum Point {
@@ -212,23 +265,23 @@ pub struct PointDirection {
 }
 #[derive(Debug,Clone)]
 pub struct PointOption {
-    option: MovementOption,
+    option: Option<MovementOption>,
 }
 #[derive(Debug,Clone)]
 pub struct ChangeX {
-    x: Value
+    x: Option<Value>
 }
 #[derive(Debug,Clone)]
 pub struct SetX {
-    x: Value
+    x: Option<Value>
 }
 #[derive(Debug,Clone)]
 pub struct ChangeY {
-    y: Value
+    y: Option<Value>
 }
 #[derive(Debug,Clone)]
 pub struct SetY {
-    y: Value
+    y: Option<Value>
 }
 #[derive(Debug,Clone)]
 pub struct IfOnEdgeBounce {}
@@ -238,9 +291,27 @@ pub enum RotationStyle {
     DontRotate,
     AllAround,
 }
+impl RotationStyle {
+    fn from(val: Option<Value>) -> Option<RotationStyle> {
+        match val {
+            Some(a) => {
+                match a {
+                    Value::String(a) => match a.as_str() {
+                        "left-right" => Some(Self::LeftRight),
+                        "don't rotate" => Some(Self::DontRotate),
+                        "all around" => Some(Self::AllAround),
+                        _ => None,
+                    }
+                    _ => None
+                }
+            }
+            None => None,
+        }
+    }
+}
 #[derive(Debug,Clone)]
 pub struct SetRotationStyle {
-    style: RotationStyle
+    style: Option<RotationStyle>
 }
 #[derive(Debug,Clone)]
 pub struct XPosition;#[derive(Debug,Clone)]
@@ -252,27 +323,39 @@ pub struct Direction;
 //
 #[derive(Debug,Clone)]
 pub struct SayForever {
-    message: String,
+    message: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Say {
-    message: String,
-    secs: Option<String>
+    message: Option<Value>,
+    secs: Option<Value>
 }
 #[derive(Debug,Clone)]
 pub struct Think {
-    message: String,
-    secs: Option<String>
+    message: Option<Value>,
+    secs: Option<Value>
+}
+#[derive(Debug,Clone)]
+pub struct ThinkForever {
+    message: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct SwitchCostume {
-    costume: Option<String>,
+    costume: Option<Value>,
+}
+#[derive(Debug,Clone)]
+pub struct SwitchCostumeAndWait {
+    costume: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct NextCostume;
 #[derive(Debug,Clone)]
 pub struct SwitchBackdrop {
-    backdrop: Option<String>,
+    backdrop: Option<Value>,
+}
+#[derive(Debug,Clone)]
+pub struct SwitchBackdropAndWait {
+    backdrop: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct NextBackdrop;
@@ -285,27 +368,59 @@ pub struct SetSize {
     percentage: Option<Value>,
 }
 #[derive(Debug,Clone)]
-pub struct ClearGraphicEffects;#[derive(Debug,Clone)]
-pub struct ShowSprite;#[derive(Debug,Clone)]
+pub struct ClearGraphicEffects;
+#[derive(Debug,Clone)]
+pub struct ShowSprite;
+#[derive(Debug,Clone)]
 pub struct HideSprite;
+#[derive(Debug,Clone)]
+pub struct HideAllSprites;
 #[derive(Debug,Clone)]
 pub enum LayerOption {
     Front,
     Back,
 }
+impl LayerOption {
+    fn from(val: Option<Value>) -> Option<LayerOption> {
+        match val {
+            Some(Value::String(a)) => {
+                match a.as_str() {
+                    "front" => Some(Self::Front),
+                    "back" => Some(Self::Back),
+                    _ => None
+                }
+            }
+            _ => None,
+        }
+    }
+}
 #[derive(Debug,Clone)]
 pub struct GotoLayer {
-    option: LayerOption
+    option: Option<LayerOption>
 }
 #[derive(Debug,Clone)]
 pub enum LayerDirection {
     Forward,
     Backward,
 }
+impl LayerDirection {
+    fn from(val: Option<Value>) -> Option<LayerDirection> {
+        match val {
+            Some(Value::String(a)) => {
+                match a.as_str() {
+                    "forward" => Some(Self::Forward),
+                    "backward" => Some(Self::Backward),
+                    _ => None,
+                }
+            }
+            _ => None,
+        }
+    }
+}
 #[derive(Debug,Clone)]
 pub struct ChangeLayer {
-    direction: LayerDirection,
-    by: i32,
+    direction: Option<LayerDirection>,
+    by: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub enum Costume {
@@ -330,8 +445,12 @@ pub struct Size;
 // Sound blocks
 //
 #[derive(Debug,Clone)]
+pub struct PlaySound {
+    sound: Option<Value>
+}
+#[derive(Debug,Clone)]
 pub struct PlaySoundUntilDone {
-    sound: String
+    sound: Option<Value>
 }
 #[derive(Debug,Clone)]
 pub struct StartSound {
@@ -344,16 +463,32 @@ pub enum SoundEffect {
     Pitch,
     Pan
 }
+impl SoundEffect {
+    fn from(val: Option<Value>) -> Option<SoundEffect> {
+        match val {
+            Some(Value::String(a)) => {
+                match a.as_str() {
+                    "PITCH" => Some(Self::Pitch),
+                    "PAN" => Some(Self::Pan),
+                    _ => None
+                }
+            }
+            _ => None,
+        }
+    }
+}
 #[derive(Debug,Clone)]
 pub struct ChangeEffectBy {
-    effect: SoundEffect,
+    effect: Option<SoundEffect>,
     units: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct SetEffectTo {
-    effect: SoundEffect,
+    effect: Option<SoundEffect>,
     percentage: Option<Value>,
 }
+#[derive(Debug,Clone)]
+pub struct ClearSoundEffects;
 #[derive(Debug,Clone)]
 pub struct ChangeVolumeBy {
     units: Option<Value>,
@@ -374,40 +509,78 @@ pub enum Key {
     UpArrow,
     RightArrow,
     DownArrow,
+    Space,
     Any,
     /// Any character from a-z and 0-9
     Alphanumerical(char),
 }
-#[derive(Debug,Clone)]
-pub struct WhenKeyClicked {
-    key: Key,
+impl Key {
+    fn from(val: Option<Value>) -> Option<Key> {
+        match val {
+            Some(Value::String(a)) => {
+                match a.as_str() {
+                    "up arrow" => Some(Self::UpArrow),
+                    "down arrow" => Some(Self::DownArrow),
+                    "right arrow" => Some(Self::RightArrow),
+                    "left arrow" => Some(Self::LeftArrow),
+                    "space" => Some(Self::Space),
+                    "any" => Some(Self::Any),
+                    _ => {
+                        Some(Self::Alphanumerical(a.chars().next().unwrap()))
+                    }
+                }
+            }
+            _ => None,
+        }
+    }
 }
 #[derive(Debug,Clone)]
-pub struct WhenSpriteClicked;#[derive(Debug,Clone)]
+pub struct WhenKeyPressed {
+    key: Option<Key>,
+}
+#[derive(Debug,Clone)]
+pub struct WhenSpriteClicked;
+#[derive(Debug,Clone)]
+pub struct WhenStageClicked;
+#[derive(Debug,Clone)]
 pub struct WhenBackdropSwitchesTo {
-    backdrop: String,
+    backdrop: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub enum EventOption {
     Loudness,
     Timer
 }
+impl EventOption {
+    fn from(val: Option<Value>) -> Option<EventOption> {
+        match val {
+            Some(Value::String(a)) => {
+                match a.as_str() {
+                    "loudness" => Some(Self::Loudness),
+                    "timer" => Some(Self::Timer),
+                    _ => None
+                }
+            }
+            _ => None,
+        }
+    }
+}
 #[derive(Debug,Clone)]
 pub struct WhenOptionGreaterThen {
-    option: EventOption,
+    option: Option<EventOption>,
     by: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct WhenIRecieveBroadcast {
-    broadcast: String,
+    broadcast: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Broadcast {
-    broadcast: String,
+    broadcast: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct BroadcastAndWait {
-    broadcast: String,
+    broadcast: Option<Value>,
 }
 
 //
@@ -425,22 +598,22 @@ pub struct Repeat {
 pub struct Forever;
 #[derive(Debug,Clone)]
 pub struct IfThen {
-    condition: Option<String>,
-    then: Option<String>,
+    condition: Option<Value>,
+    then: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct IfThenElse {
-    condition: Option<String>,
-    then: Option<String>,
-    otherwise: Option<String>,
+    condition: Option<Value>,
+    then: Option<Value>,
+    otherwise: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct WaitUntil {
-    condition: Option<String>,
+    condition: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct RepeatUntil {
-    condition: Option<String>,
+    condition: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct StopAll;
@@ -449,11 +622,25 @@ pub struct WhenIStartAsAClone;
 #[derive(Debug,Clone)]
 pub enum SpriteOption {
     Myself,
-    Sprite(String),
+    Sprite(Value),
+}
+impl SpriteOption {
+    fn from(val: Option<Value>) -> Option<SpriteOption> {
+        let myself: &'static str = "_myself_";
+        match val {
+            Some(a) => {
+                match a {
+                    myself => Some(Self::Myself),
+                    _ => Some(Self::Sprite(a)),
+                }
+            }
+            None => None,
+        }
+    }
 }
 #[derive(Debug,Clone)]
 pub struct CreateCloneOf {
-    of: SpriteOption,
+    of: Option<SpriteOption>,
 }
 #[derive(Debug,Clone)]
 pub struct DeleteClone;
@@ -463,46 +650,79 @@ pub struct DeleteClone;
 pub enum SensingOption {
     MousePointer,
     Edge,
-    Sprite(String)
+    Sprite(Value)
+}
+impl SensingOption {
+    fn from(val: Option<Value>) -> Option<SensingOption> {
+        match val {
+            Some(Value::String(a)) => {
+                match a.as_str() {
+                    "_mouse_" => Some(Self::MousePointer),
+                    "_edge_" => Some(Self::Edge),
+                    _ => Some(Self::Sprite(Value::String(a))),
+                }
+            }
+            _ => None,
+        }
+    }
 }
 #[derive(Debug,Clone)]
 pub struct Touching {
-    touching: SensingOption
+    touching: Option<SensingOption>
 }
 #[derive(Debug,Clone)]
 pub struct TouchingColor {
-    color: String,
+    color: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct ColorTouchingColor {
-    color1: String,
-    color2: String,
+    color1: Option<Value>,
+    color2: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct DistanceTo {
-    to: SensingOption
+    to: Option<SensingOption>
 }
 #[derive(Debug,Clone)]
 pub struct Answer;
 #[derive(Debug,Clone)]
 pub struct KeyPressed {
-    key: Key
+    key: Option<Key>
 }
 #[derive(Debug,Clone)]
-pub struct MouseDown;#[derive(Debug,Clone)]
-pub struct MouseX;#[derive(Debug,Clone)]
+pub struct MouseDown;
+#[derive(Debug,Clone)]
+pub struct MouseX;
+#[derive(Debug,Clone)]
 pub struct MouseY;
 #[derive(Debug,Clone)]
 pub enum DraggableOption {
     Draggable,
     NotDraggable
 }
-#[derive(Debug,Clone)]
-pub struct SetDragMode {
-    option: DraggableOption,
+impl DraggableOption {
+    fn from(val: Option<Value>) -> Option<DraggableOption> {
+        let drag: &'static str = "draggable";
+        let not_drag: &'static str = "not draggable";
+        match val {
+            Some(a) => {
+                match a {
+                    drag => Some(Self::Draggable),
+                    not_drag => Some(Self::NotDraggable),
+                    _ => None,
+                }
+            }
+            None => None,
+        }
+    }
 }
 #[derive(Debug,Clone)]
-pub struct Loudness;#[derive(Debug,Clone)]
+pub struct SetDragMode {
+    option: Option<DraggableOption>,
+}
+#[derive(Debug,Clone)]
+pub struct Loudness;
+#[derive(Debug,Clone)]
 pub struct Timer;
 #[derive(Debug,Clone)]
 pub struct ResetTimer;
@@ -527,9 +747,31 @@ pub enum CurrentTimeOption {
     Minute,
     Second,
 }
+impl CurrentTimeOption {
+    fn from(val: Option<Value>) -> Option<CurrentTimeOption> {
+        match val {
+            Some(a) => {
+                match a {
+                    Value::String(a) => match a.as_str() {
+                        "year" => Some(Self::Year),
+                        "month" => Some(Self::Month),
+                        "date" => Some(Self::Date),
+                        "day of week" => Some(Self::DayOfWeek),
+                        "hour" => Some(Self::Hour),
+                        "minute" => Some(Self::Minute),
+                        "second" => Some(Self::Second),
+                        _ => None,
+                    }
+                    _ => None,
+                }
+            }
+            None => None,
+        }
+    }
+}
 #[derive(Debug,Clone)]
 pub struct CurrentTime {
-    option: CurrentTimeOption
+    option: Option<CurrentTimeOption>
 }
 #[derive(Debug,Clone)]
 pub struct DaysSince2000;#[derive(Debug,Clone)]
@@ -540,89 +782,94 @@ pub struct Username;
 //
 #[derive(Debug,Clone)]
 pub struct Add {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Sub {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Mul {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Divide {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct PickRandom {
-    min: Value,
-    max: Value,
+    min: Option<Value>,
+    max: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct GreaterThen {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct LesserThen {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct EqualTo {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct And {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Or {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Not {
-    a: Value,
+    a: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Join {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct LetterOf {
-    index: Value,
-    a: Value,
+    index: Option<Value>,
+    a: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct LengthOf {
-    a: Value,
+    a: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Contains {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Modulo {
-    a: Value,
-    b: Value,
+    a: Option<Value>,
+    b: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Round {
-    a: Value,
+    a: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct Absolute {
-    a: Value,
+    a: Option<Value>,
+}
+
+#[derive(Debug,Clone)]
+pub struct InvalidOpcode {
+    name: String,
 }
 
 // Variables
@@ -630,6 +877,11 @@ pub struct Absolute {
 // todo
 
 // Deserializiation implementation
+
+// numbers only regex
+lazy_static! {
+    static ref NUMBERS_ONLY_REGEX: Regex = Regex::new(r"[^0-9]").unwrap();
+}
 
 impl<'de> Deserialize<'de> for BlockType {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error>{
@@ -643,13 +895,751 @@ impl<'de> Deserialize<'de> for BlockType {
                         return Err(format!("not a string: {}",a.1)).map_err(de::Error::custom);
                     }
                 };
+
+                //
+                // Each block has three parts.
+                // The first value is always a number and signifies whether there's a "shadow".
+                // - 1 (SameBlockShadow): unobscured "shadow": the second value is a block
+                // - 2 (BlockNoShadow): no shadow: the second value is a reference to a block
+                // - 3 (DiffBlockShadow): obscured shadow: the second value is a reference to a block and the third is a "shadow"
+
+                // a "shadow" is something that's only important to the visual editor; its the value that the user dragged a block over.
+                // we don't care about this.
+
+                // inputs is never null only empty
+                let (_, inputs) = v.get_key_value("inputs").unwrap();
+                let inputs = inputs.as_object().unwrap();
+
+                // same with fields
+                let (_, fields) = v.get_key_value("fields").unwrap();
+                let fields = fields.as_object().unwrap();
+
+                //
+                // get the relevant values.
+                let mut values: Vec<Value> = Vec::new();
+                for (_, input) in inputs {
+                    let b = input.get(1);
+                    let block = match b {
+                        Some(a) => {
+                            let bl;
+                            if a.is_array() {
+                                bl = a.as_array().unwrap().get(1).unwrap();
+                            } else {
+                                bl = a
+                            };
+                            if bl.is_null() {
+                                continue
+                            } else if bl.is_u64() {
+                                Value::Number(bl.as_u64().unwrap() as f64)
+                            } else if bl.is_i64() {
+                                Value::Number(bl.as_i64().unwrap() as f64)
+                            } else if bl.is_f64() {
+                                Value::Number(bl.as_f64().unwrap())
+                            } else {
+                                let st = bl.as_str().unwrap();
+                                if NUMBERS_ONLY_REGEX.is_match(st) {
+                                    Value::String(st.to_string())
+                                } else {
+                                    match st.parse() {
+                                        Ok(a) => Value::Number(a),
+                                        Err(_) => return Err(format!("could not format {} into a number",st)).map_err(de::Error::custom),
+                                    }
+
+                                }
+                            }
+                        },
+                        None => {return Err(format!("what")).map_err(de::Error::custom);}// we should never reach this
+                    };
+                    values.push(block);
+                }
+                let mut field_values: Vec<Value> = Vec::new();
+                for (_, field) in fields {
+                    let b = field.get(0);
+                    let value = match b {
+                        Some(a) => {
+                            let bl;
+                            if a.is_array() {
+                                bl = a.as_array().unwrap().get(1).unwrap();
+                            } else {
+                                bl = a
+                            };
+                            if bl.is_null() {
+                                continue
+                            } else if bl.is_u64() {
+                                Value::Number(bl.as_u64().unwrap() as f64)
+                            } else if bl.is_i64() {
+                                Value::Number(bl.as_i64().unwrap() as f64)
+                            } else if bl.is_f64() {
+                                Value::Number(bl.as_f64().unwrap())
+                            } else {
+                                let st = bl.as_str().unwrap();
+                                if NUMBERS_ONLY_REGEX.is_match(st) {
+                                    Value::String(st.to_string())
+                                } else {
+                                    match st.parse() {
+                                        Ok(a) => Value::Number(a),
+                                        Err(_) => return Err(format!("could not format {} into a number",st)).map_err(de::Error::custom),
+                                    }
+
+                                }
+                            }
+                        },
+                        None => {return Err(format!("what")).map_err(de::Error::custom);}// we should never reach this
+                    };
+                    field_values.push(value);
+                }
+
+                let val1 = match values.get(0) {
+                    Some(a) => Some(a.to_owned()),
+                    None => None,
+                };
+                let val2 = match values.get(1) {
+                    Some(a) => Some(a.to_owned()),
+                    None => None,
+                };
+                let val3 = match values.get(2) {
+                    Some(a) => Some(a.to_owned()),
+                    None => None,
+                };
+
+                let field1 = match field_values.get(0) {
+                    Some(a) => Some(a.to_owned()),
+                    None => None,
+                };
+                let field2 = match field_values.get(1) {
+                    Some(a) => Some(a.to_owned()),
+                    None => None,
+                };
+                let field3 = match field_values.get(2) {
+                    Some(a) => Some(a.to_owned()),
+                    None => None,
+                };
+
                 match &*name.to_string() {
-                    "event_whenflagclicked" => {
+                    block_names::MOTION_MOVE => {
+                        Ok(BlockType::Move(Move { steps: val1, }))
+                    },
+                    block_names::MOTION_GOTO_XY => {
+                        Ok(BlockType::Goto(Goto::Pos(
+                            GotoPos {
+                                x: val1,
+                                y: val2
+                            }
+                        )))
+                    },
+                    block_names::MOTION_GOTO => {
+                        Ok(BlockType::Goto(Goto::Option(
+                            GotoOption {
+                                option: MovementOption::from(val1)
+                            }
+                        )))
+                    },
+                    block_names::MOTION_TURN_LEFT => {
+                        Ok(BlockType::RotateLeft(RotateLeft{
+                            degrees: val1,
+                        }))
+                    },
+                    block_names::MOTION_TURN_RIGHT => {
+                        Ok(BlockType::RotateRight(RotateRight{
+                            degrees: val1,
+                        }))
+                    },
+                    block_names::MOTION_POINT_DIRECTION => {
+                        Ok(BlockType::Point(Point::Direction(
+                            PointDirection { x: val1, y: val2 }
+                        )))
+                    },
+                    block_names::MOTION_POINT_TOWARDS => {
+                        Ok(BlockType::Point(Point::Towards(
+                            PointOption { option: MovementOption::from(val1) }
+                        )))
+                    },
+                    block_names::MOTION_GLIDE_SECONDS_TO_XY => {
+                        Ok(BlockType::Glide(Glide::Pos(
+                            GlidePos{ x: val1, y: val2 }
+                        )))
+                    },
+                    block_names::MOTION_GLIDE_TO => {
+                        Ok(BlockType::Glide(Glide::Option(
+                            GlideOption { option: MovementOption::from(val1)}
+                        )))
+                    },
+                    block_names::MOTION_IF_ON_EDGE_BOUNCE => {
+                        Ok(BlockType::IfOnEdgeBounce(IfOnEdgeBounce{}))
+                    },
+                    block_names::MOTION_SET_ROTATION_STYLE => {
+                        Ok(BlockType::SetRotationStyle(SetRotationStyle{
+                            style: RotationStyle::from(val1),
+                        }))
+                    },
+                    block_names::MOTION_CHANGE_X_BY => {
+                        Ok(BlockType::ChangeX(
+                            ChangeX{
+                                x: val1,
+                            }
+                        ))
+                    }
+                    block_names::MOTION_SET_X => {
+                        Ok(BlockType::SetX(
+                            SetX { x: val1 }
+                        ))
+                    }
+                    block_names::MOTION_CHANGE_Y_BY => {
+                        Ok(BlockType::ChangeY(
+                            ChangeY { y: val1 }
+                        ))
+                    }
+                    block_names::MOTION_SET_Y => {
+                        Ok(BlockType::SetY(
+                            SetY {y: val1}
+                        ))
+                    }
+                    block_names::MOTION_XPOSITION => {
+                        Ok(BlockType::XPosition(
+                            XPosition{}
+                        ))
+                    }
+                    block_names::MOTION_YPOSITION => {
+                        Ok(BlockType::YPosition(
+                            YPosition{}
+                        ))
+                    }
+                    block_names::MOTION_DIRECTION => {
+                        Ok(BlockType::Direction(
+                            Direction{}
+                        ))
+                    }
+                    block_names::MOTION_SCROLL_RIGHT => {
+                        todo!()
+                    }
+                    block_names::MOTION_SCROLL_UP => {
+                        todo!()
+                    }
+                    block_names::MOTION_ALIGN_SCENE => {
+                        todo!()
+                    }
+                    block_names::MOTION_XSCROLL => {
+                        todo!()
+                    }
+                    block_names::MOTION_YSCROLL => {
+                        todo!()
+                    }
+
+                    block_names::LOOKS_SAY => {
+                        Ok(BlockType::SayForever(
+                            SayForever{
+                                message: val1,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_SAY_FOR_SECS => {
+                        Ok(BlockType::Say(
+                            Say{
+                                message: val1,
+                                secs: val2,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_THINK => {
+                        Ok(BlockType::ThinkForever(
+                            ThinkForever {
+                                message: val1,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_THINK_FOR_SECS => {
+                        Ok(BlockType::Think(
+                            Think {
+                                message: val1,
+                                secs: val2,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_SHOW => {
+                        Ok(BlockType::ShowSprite(ShowSprite{}))
+                    }
+                    block_names::LOOKS_HIDE => {
+                        Ok(BlockType::HideSprite(HideSprite{}))
+                    }
+                    block_names::LOOKS_HIDE_ALL_SPRITES => {
+                        Ok(BlockType::HideAllSprites(HideAllSprites{}))
+                    }
+                    block_names::LOOKS_SWITCH_COSTUME_TO => {
+                        Ok(BlockType::SwitchCostume(
+                            SwitchCostume {
+                                costume: val1,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_SWITCH_BACKDROP_TO => {
+                        Ok(BlockType::SwitchBackdrop(
+                            SwitchBackdrop {
+                                backdrop: val1,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_SWITCH_BACKDROP_TO_AND_WAIT => {
+                        Ok(BlockType::SwitchBackdropAndWait(
+                            SwitchBackdropAndWait {
+                                backdrop: val1,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_NEXT_COSTUME => {
+                        Ok(BlockType::NextCostume(
+                            NextCostume
+                        ))
+                    }
+                    block_names::LOOKS_NEXT_BACKDROP => {
+                        Ok(BlockType::NextBackdrop(
+                            NextBackdrop
+                        ))
+                    }
+                    block_names::LOOKS_CHANGE_EFFECT_BY => {
+                        Ok(BlockType::ChangeEffectBy(
+                            ChangeEffectBy {
+                                effect: SoundEffect::from(val1),
+                                units: val2,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_SET_EFFECT_TO => {
+                        Ok(BlockType::SetEffectTo(
+                            SetEffectTo {
+                                effect: SoundEffect::from(val1),
+                                percentage: val2,
+                            }
+                        ))
+                    }
+                    block_names::LOOKS_CLEAR_GRAPHICS_EFFECTS => {
+                        Ok(BlockType::ClearGraphicEffects(
+                            ClearGraphicEffects{}
+                        ))
+                    }
+                    block_names::LOOKS_CHANGE_SIZE_BY => {
+                        Ok(BlockType::ChangeSize(ChangeSize { units: val1 }))
+                    }
+                    block_names::LOOKS_SET_SIZE_TO => {
+                        Ok(BlockType::SetSize(SetSize { percentage: val1 }))
+                    }
+                    block_names::LOOKS_CHANGE_STRETCH_BY => {
+                        todo!()
+                    }
+                    block_names::LOOKS_SET_STRETCH_TO => {
+                        todo!()
+                    }
+                    block_names::LOOKS_GOTO_FRONT_BACK => {
+                        Ok(BlockType::GotoLayer(GotoLayer{
+                            option: LayerOption::from(val1),
+                        }))
+                    }
+                    block_names::LOOKS_GO_FORWARD_BACKWARD_LAYERS => {
+                        Ok(BlockType::ChangeLayer(ChangeLayer{
+                            direction: LayerDirection::from(val1),
+                            by: val2,
+                        }))
+                    }
+                    block_names::LOOKS_SIZE => {
+                        Ok(BlockType::Size(Size{}))
+                    }
+                    block_names::LOOKS_COSTUME_NUMBER_NAME => {
+                        match field1 {
+                            Some(Value::String(a)) => match a.as_str() {
+                                "number" => Ok(BlockType::Costume(
+                                    Costume::ByNumber(CostumeByNumber{})
+                                )),
+                                "name" => Ok(BlockType::Costume(
+                                    Costume::ByName(CostumeByName{})
+                                )),
+                                _ => {return Err(format!("invalid option given for costume number/name")).map_err(de::Error::custom);},
+                            }
+                            _ => {return Err(format!("no option given for costume number/name")).map_err(de::Error::custom);},
+                        }
+                    }
+                    block_names::LOOKS_BACKDROP_NUMBER_NAME => {
+                        match field1 {
+                            Some(Value::String(a)) => match a.as_str() {
+                                "number" => Ok(BlockType::Backdrop(
+                                    Backdrop::ByNumber(BackdropByNumber{})
+                                )),
+                                "name" => Ok(BlockType::Backdrop(
+                                    Backdrop::ByName(BackdropByName{})
+                                )),
+                                _ => {return Err(format!("invalid option given for backdrop number/name")).map_err(de::Error::custom);},
+                            }
+                            _ => {return Err(format!("no option given for backdrop number/name")).map_err(de::Error::custom);},
+                        }
+                    }
+                    block_names::SOUND_PLAY => {
+                        Ok(BlockType::PlaySound(PlaySound{
+                            sound: val1,
+                        }))
+                    }
+                    block_names::SOUND_PLAY_UNTIL_DONE => {
+                        Ok(BlockType::PlaySoundUntilDone(PlaySoundUntilDone{
+                            sound: val1,
+                        }))
+                    }
+                    block_names::SOUND_STOP_ALL_SOUNDS => {
+                        Ok(BlockType::StopAllSounds(StopAllSounds{}))
+                    }
+                    block_names::SOUND_SET_EFFECT_TO => {
+                        Ok(BlockType::SetEffectTo(SetEffectTo{
+                            effect: SoundEffect::from(val1),
+                            percentage: val2,
+                        }))
+                    }
+                    block_names::SOUND_CHANGE_EFFECT_BY => {
+                        Ok(BlockType::ChangeEffectBy(ChangeEffectBy{
+                            effect: SoundEffect::from(val1),
+                            units: val2,
+                        }))
+                    }
+                    block_names::SOUND_CLEAR_EFFECTS => {
+                        Ok(BlockType::ClearSoundEffects(ClearSoundEffects{}))
+                    }
+                    /*block_names::SOUND_SOUNDS_MENU => {
+                        todo!()
+                    }*/
+                    block_names::SOUNDS_BEATS_MENU => {
+                        todo!()
+                    }
+                    block_names::SOUND_EFFECTS_MENU => {
+                        todo!()
+                    }
+                    block_names::SOUND_SET_VOLUME_TO => {
+                        Ok(BlockType::SetVolumeTo(SetVolumeTo{
+                            percentage: val1,
+                        }))
+                    }
+                    block_names::SOUND_CHANGE_VOLUME_BY => {
+                        Ok(BlockType::ChangeVolumeBy(ChangeVolumeBy{
+                            units: val1,
+                        }))
+                    }
+                    block_names::SOUND_VOLUME => {
+                        Ok(BlockType::Volume(Volume{}))
+                    }
+
+                    block_names::EVENT_WHEN_TOUCHING_OBJECT => {
+                        todo!()
+                    }
+                    block_names::EVENT_BROADCAST => {
+                        Ok(BlockType::Broadcast(Broadcast { broadcast: val1 }))
+                    }
+                    block_names::EVENT_BROADCAST_AND_WAIT => {
+                        Ok(BlockType::BroadcastAndWait(BroadcastAndWait { broadcast: val1 }))
+                    }
+                    block_names::EVENT_WHEN_GREATER_THAN => {
+                        Ok(BlockType::WhenOptionGreaterThen(
+                            WhenOptionGreaterThen {
+                                option: EventOption::from(val1),
+                                by: val2,
+                            }
+                        ))
+                    }
+                    block_names::EVENT_WHEN_FLAG_CLICKED => {
                         Ok(BlockType::WhenGreenFlagClicked(WhenGreenFlagClicked{}))
                     }
-                    _ => {
-                        return Err(format!("invalid opcode {}",a.1)).map_err(de::Error::custom);
+                    block_names::EVENT_WHEN_KEY_PRESSED => {
+                        Ok(BlockType::WhenKeyPressed(WhenKeyPressed{
+                            key: Key::from(val1),
+                        }))
                     }
+                    block_names::EVENT_WHEN_THIS_SPRITECLICKED => {
+                        Ok(BlockType::WhenSpriteClicked(WhenSpriteClicked{}))
+                    }
+                    block_names::EVENT_WHEN_STAGE_CLICKED => {
+                        Ok(BlockType::WhenStageClicked(WhenStageClicked{}))
+                    }
+                    block_names::EVENT_WHEN_BACKDROP_SWITCHESTO => {
+                        Ok(BlockType::WhenBackdropSwitchesTo(
+                            WhenBackdropSwitchesTo{
+                                backdrop: val1,
+                            }
+                        ))
+                    }
+                    block_names::EVENT_WHEN_BROADCAST_RECEIVED => {
+                        Ok(BlockType::WhenIRecieveBroadcast(
+                            WhenIRecieveBroadcast{
+                                broadcast: val1,
+                            }
+                        ))
+                    }
+                    
+                    block_names::CONTROL_REPEAT => {
+                        Ok(BlockType::Repeat(
+                            Repeat{
+                                units: val1,
+                            }
+                        ))
+                    }
+                    block_names::CONTROL_REPEAT_UNTIL => {
+                        Ok(BlockType::RepeatUntil(
+                            RepeatUntil{
+                                condition: val1,
+                            }
+                        ))
+                    }
+                    block_names::CONTROL_WHILE => {
+                        Ok(BlockType::RepeatUntil(
+                            RepeatUntil{
+                                condition: val1,
+                            }
+                        ))
+                    }
+                    block_names::CONTROL_FOR_EACH => {
+                        todo!() // i don't see this in the scratch part picker what?
+                    }
+                    block_names::CONTROL_FOREVER => {
+                        Ok(BlockType::Forever(
+                            Forever{}
+                        ))
+                    }
+                    block_names::CONTROL_WAIT => {
+                        Ok(BlockType::WaitSeconds(WaitSeconds{
+                            seconds: val1,
+                        }))
+                    }
+                    block_names::CONTROL_WAIT_UNTIL => {
+                        Ok(BlockType::WaitUntil(WaitUntil{
+                            condition: val1,
+                        }))
+                    }
+                    block_names::CONTROL_IF => {
+                        Ok(BlockType::IfThen(
+                            IfThen{
+                                condition: val1,
+                                then: val2,
+                            }
+                        ))
+                    }
+                    block_names::CONTROL_IF_ELSE => {
+                        Ok(BlockType::IfThenElse(
+                            IfThenElse{
+                                condition: val1,
+                                then: val2,
+                                otherwise: val3,
+                            }
+                        ))
+                    }
+                    block_names::CONTROL_STOP => {
+                        Ok(BlockType::StopAll(StopAll{}))
+                    }
+                    block_names::CONTROL_CREATE_CLONE_OF => {
+                        Ok(BlockType::CreateCloneOf(CreateCloneOf{
+                            of: SpriteOption::from(val1),
+                        }))
+                    }
+                    block_names::CONTROL_DELETE_THIS_CLONE => {
+                        Ok(BlockType::DeleteClone(DeleteClone{}))
+                    }
+                    block_names::CONTROL_GET_COUNTER => {
+                        todo!()
+                    }
+                    block_names::CONTROL_INCREMENT_COUNTER => {
+                        todo!()
+                    }
+                    block_names::CONTROL_CLEAR_COUNTER => {
+                        todo!()
+                    }
+                    block_names::CONTROL_ALL_AT_ONCE => {
+                        todo!()
+                    }
+                    block_names::CONTROL_START_AS_CLONE => {
+                        todo!()
+                    }
+
+                    block_names::SENSING_TOUCHING_OBJECT => {
+                        Ok(BlockType::Touching(Touching{
+                            touching: SensingOption::from(val1),
+                        }))
+                    }
+                    block_names::SENSING_TOUCHING_COLOR => {
+                        Ok(BlockType::TouchingColor(TouchingColor {
+                            color: val1,
+                        }))
+                    }
+                    block_names::SENSING_COLOR_IS_TOUCHING_COLOR => {
+                        Ok(BlockType::ColorTouchingColor(ColorTouchingColor {
+                            color1: val1,
+                            color2: val2,
+                        }))
+                    }
+                    block_names::SENSING_DISTANCE_TO => {
+                        Ok(BlockType::DistanceTo(DistanceTo{
+                            to: SensingOption::from(val1),
+                        }))
+                    }
+                    block_names::SENSING_TIMER => {
+                        Ok(BlockType::Timer(Timer{}))
+                    }
+                    block_names::SENSING_RESET_TIMER => {
+                        Ok(BlockType::ResetTimer(ResetTimer{}))
+                    }
+                    // uses fields.
+                    block_names::SENSING_OF => {
+                        todo!()
+                    }
+                    block_names::SENSING_MOUSE_X => {
+                        Ok(BlockType::MouseX(MouseX{}))
+                    }
+                    block_names::SENSING_MOUSE_Y => {
+                        Ok(BlockType::MouseY(MouseY{}))
+                    }
+                    block_names::SENSING_SET_DRAG_MODE => {
+                        Ok(BlockType::SetDragMode(SetDragMode{
+                            option: DraggableOption::from(val1),
+                        }))
+                    }
+                    block_names::SENSING_MOUSE_DOWN => {
+                        Ok(BlockType::MouseDown(MouseDown{}))
+                    }
+                    block_names::SENSING_KEY_PRESSED => {
+                        Ok(BlockType::KeyPressed(KeyPressed{
+                            key: Key::from(val1),
+                        }))
+                    }
+                    block_names::SENSING_CURRENT => {
+                        Ok(BlockType::CurrentTime(CurrentTime{
+                            option: CurrentTimeOption::from(val1),
+                        }))
+                    }
+                    block_names::SENSING_DAYS_SINCE_2000 => {
+                        Ok(BlockType::DaysSince2000(DaysSince2000{}))
+                    }
+                    block_names::SENSING_LOUDNESS => {
+                        Ok(BlockType::Loudness(Loudness{}))
+                    }
+                    block_names::SENSING_LOUD => {
+                        todo!() // What?
+                    }
+                    block_names::SENSING_ASK_AND_WAIT => {
+                        todo!()
+                    }
+                    block_names::SENSING_ANSWER => {
+                        Ok(BlockType::Answer(Answer{}))
+                    }
+                    block_names::SENSING_USERNAME => {
+                        Ok(BlockType::Username(Username{}))
+                    }
+                    block_names::SENSING_USER_ID => {
+                        todo!()
+                    }
+                    
+                    block_names::OPERATOR_ADD => {
+                        Ok(BlockType::Add(Add{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_SUBTRACT => {
+                        Ok(BlockType::Sub(Sub{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_MULTIPLY => {
+                        Ok(BlockType::Mul(Mul{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_DIVIDE => {
+                        Ok(BlockType::Divide(Divide{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_LESSER_THEN => {
+                        Ok(BlockType::LesserThen(LesserThen{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_EQUALS => {
+                        Ok(BlockType::EqualTo(EqualTo{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_GREATER_THEN => {
+                        Ok(BlockType::GreaterThen(GreaterThen{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_AND => {
+                        Ok(BlockType::And(And{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_OR => {
+                        Ok(BlockType::Or(Or{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_NOT => {
+                        Ok(BlockType::Not(Not{
+                            a: val1,
+                        }))
+                    }
+                    block_names::OPERATOR_RANDOM => {
+                        Ok(BlockType::PickRandom(PickRandom{
+                            min: val1,
+                            max: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_JOIN => {
+                        Ok(BlockType::Join(Join{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_LETTER_OF => {
+                        Ok(BlockType::LetterOf(LetterOf{
+                            index: val1,
+                            a: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_LENGTH => {
+                        Ok(BlockType::LengthOf(LengthOf{
+                            a: val1,
+                        }))
+                    }
+                    block_names::OPERATOR_CONTAINS => {
+                        Ok(BlockType::Contains(Contains{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_MOD => {
+                        Ok(BlockType::Modulo(Modulo{
+                            a: val1,
+                            b: val2,
+                        }))
+                    }
+                    block_names::OPERATOR_ROUND => {
+                        Ok(BlockType::Round(Round{
+                            a: val1,
+                        }))
+                    }
+                    block_names::OPERATOR_MATHOP => {
+                        Ok(BlockType::Absolute(Absolute{
+                            a: val1,
+                        }))
+                    }
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        return Err(format!("invalid opcode {}",a.1)).map_err(de::Error::custom);
+                        #[cfg(not(debug_assertions))]
+                        Ok(BlockType::InvalidOpcode(InvalidOpcode{
+                            name: name.to_string(),
+                        }))
+                    }
+
                 }
             },
             None => {
