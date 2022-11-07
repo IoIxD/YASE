@@ -1,5 +1,8 @@
+extern crate proc;
+
 use std::{collections::HashMap};
 
+use proc::block_derive;
 #[allow(dead_code)]
 
 use serde::{Deserialize, Deserializer ,de};
@@ -44,8 +47,6 @@ pub enum Value {
     Number(f64),
     String(String),
 }
-
-pub trait Block {}
 
 #[derive(Debug,Clone)]
 pub enum BlockType {
@@ -201,14 +202,17 @@ pub enum BlockType {
 //
 // Motion Blocks
 //
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Move {
     steps: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct RotateLeft {
     degrees: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct RotateRight {
     degrees: Option<Value>
@@ -253,11 +257,13 @@ pub enum Goto {
     Pos(GotoPos),
     Option(GotoOption),
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct GotoPos {
     x: Option<Value>,
     y: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct GotoOption {
     option: Option<MovementOption>,
@@ -267,15 +273,18 @@ pub enum Glide {
     Pos(GlidePos),
     Option(GlideOption),
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct GlidePos {
     x: Option<Value>,
     y: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct GlideOption {
     option: Option<MovementOption>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct PointTowardsMenu {
     option: Option<Point>,
@@ -286,31 +295,38 @@ pub enum Point {
     Towards(PointOption),
 }
 
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct PointDirection {
     x: Option<Value>,
     y: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct PointOption {
     option: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeX {
     x: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetX {
     x: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeY {
     y: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetY {
     y: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct IfOnEdgeBounce {}
 #[derive(Debug,Clone)]
@@ -347,72 +363,101 @@ impl RotationStyle {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetRotationStyle {
     style: Option<RotationStyle>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct XPosition;#[derive(Debug,Clone)]
-pub struct YPosition;#[derive(Debug,Clone)]
-pub struct Direction;
+pub struct XPosition {}
+#[block_derive]
+#[derive(Debug,Clone)]
+pub struct YPosition {}
+#[block_derive]
+#[derive(Debug,Clone)]
+pub struct Direction {}
+
 
 //
 // Look blocks
 //
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SayForever {
     message: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Say {
     message: Option<Value>,
     secs: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Think {
     message: Option<Value>,
     secs: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ThinkForever {
     message: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SwitchCostume {
     costume: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SwitchCostumeAndWait {
     costume: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct NextCostume;
+pub struct NextCostume {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SwitchBackdrop {
     backdrop: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SwitchBackdropAndWait {
     backdrop: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct NextBackdrop;
+pub struct NextBackdrop {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeSize {
     units: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetSize {
     percentage: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct ClearGraphicEffects;
+pub struct ClearGraphicEffects {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct ShowSprite;
+pub struct ShowSprite {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct HideSprite;
+pub struct HideSprite {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct HideAllSprites;
+pub struct HideAllSprites {}
+
 #[derive(Debug,Clone)]
 pub enum LayerOption {
     Front,
@@ -437,6 +482,7 @@ impl LayerOption {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct GotoLayer {
     option: Option<LayerOption>
@@ -461,6 +507,7 @@ impl LayerDirection {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeLayer {
     direction: Option<LayerDirection>,
@@ -472,43 +519,60 @@ pub enum Costume {
     ByName(CostumeByName),
     WithName(Option<Value>),
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct CostumeByNumber;
+pub struct CostumeByNumber {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct CostumeByName;
+pub struct CostumeByName {}
+
 #[derive(Debug,Clone)]
 pub enum Backdrop {
     ByNumber(BackdropByNumber),
     ByName(BackdropByName),
     WithName(Option<Value>),
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct BackdropByNumber;#[derive(Debug,Clone)]
-pub struct BackdropByName;
+pub struct BackdropByNumber {}
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct Size;
+pub struct BackdropByName {}
+
+#[block_derive]
+#[derive(Debug,Clone)]
+pub struct Size {}
+
 
 //
 // Sound blocks
 //
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct PlaySound {
     sound: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct PlaySoundUntilDone {
     sound: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct StartSound {
     sound: String,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct StopAllSounds;
+pub struct StopAllSounds {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SoundEffectsMenu {
     option: Option<SoundEffect>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SoundSoundsMenu {
     option: Option<Value>
@@ -537,32 +601,42 @@ impl SoundEffect {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeEffectBy {
     effect: Option<Value>,
     units: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetEffectTo {
     effect: Option<Value>,
     percentage: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct ClearSoundEffects;
+pub struct ClearSoundEffects {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeVolumeBy {
     units: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetVolumeTo {
     percentage: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct Volume;
+pub struct Volume {}
+
 
 // Event blocks
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct WhenGreenFlagClicked;
+pub struct WhenGreenFlagClicked {}
+
 #[derive(Debug,Clone)]
 pub enum Key {
     LeftArrow,
@@ -594,14 +668,20 @@ impl Key {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenKeyPressed {
     key: Option<Key>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct WhenSpriteClicked;
+pub struct WhenSpriteClicked {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct WhenStageClicked;
+pub struct WhenStageClicked {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenBackdropSwitchesTo {
     backdrop: Option<Value>,
@@ -630,19 +710,23 @@ impl EventOption {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenOptionGreaterThen {
     option: Option<EventOption>,
     by: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenIRecieveBroadcast {
     broadcast: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Broadcast {
     broadcast: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct BroadcastAndWait {
     broadcast: Option<Value>,
@@ -651,64 +735,84 @@ pub struct BroadcastAndWait {
 //
 // Control
 //
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct WaitSeconds {
     seconds: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Repeat {
     units: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct Forever;
+pub struct Forever {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct IfThen {
     condition: Option<Value>,
     then: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct IfThenElse {
     condition: Option<Value>,
     then: Option<Value>,
     otherwise: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct WaitUntil {
     condition: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct RepeatUntil {
     condition: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct StopAll;
+pub struct StopAll {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct WhenIStartAsAClone;
+pub struct WhenIStartAsAClone {}
+
 #[derive(Debug,Clone)]
 pub enum SpriteOption {
     Myself,
-    Sprite(Value),
+    Sprite(String),
 }
 impl SpriteOption {
     fn from(val: Option<Value>) -> Option<SpriteOption> {
         let myself: &'static str = "_myself_";
         match val {
-            Some(a) => {
-                match a {
+            Some(Value::String(a)) => {
+                match a.as_str() {
                     myself => Some(Self::Myself),
                     _ => Some(Self::Sprite(a)),
                 }
             }
-            None => None,
+            _ => {
+                #[cfg(debug_assertions)]
+                panic!("invalid sprite option: {:?}",val);
+                #[cfg(not(debug_assertions))]
+                None
+            },
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct CreateCloneOf {
     of: Option<SpriteOption>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct DeleteClone;
+pub struct DeleteClone {}
+
 
 // Sensing blocks
 #[derive(Debug,Clone)]
@@ -731,39 +835,53 @@ impl SensingOption {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Touching {
     touching: Option<Value>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct TouchingMenu {
     touching: Option<SensingOption>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct TouchingColor {
     color: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct ColorTouchingColor {
     color1: Option<Value>,
     color2: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct DistanceTo {
     to: Option<SensingOption>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct Answer;
+pub struct Answer {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct KeyPressed {
     key: Option<Key>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct MouseDown;
+pub struct MouseDown {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct MouseX;
+pub struct MouseX {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct MouseY;
+pub struct MouseY {}
+
 #[derive(Debug,Clone)]
 pub enum DraggableOption {
     Draggable,
@@ -790,16 +908,23 @@ impl DraggableOption {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetDragMode {
     option: Option<DraggableOption>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct Loudness;
+pub struct Loudness {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct Timer;
+pub struct Timer {}
+
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct ResetTimer;
+pub struct ResetTimer {}
+
 #[derive(Debug,Clone)]
 pub enum BackdropOfOption {
     BackdropNumber,
@@ -807,6 +932,7 @@ pub enum BackdropOfOption {
     Volume,
     MyVariable,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct BackdropOf {
     backdrop: BackdropOfOption,
@@ -853,109 +979,133 @@ impl CurrentTimeOption {
         }
     }
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct CurrentTime {
     option: Option<CurrentTimeOption>
 }
+#[block_derive]
 #[derive(Debug,Clone)]
-pub struct DaysSince2000;#[derive(Debug,Clone)]
-pub struct Username;
+pub struct DaysSince2000;#[block_derive]
+#[derive(Debug,Clone)]
+pub struct Username {}
+
 
 //
 // Operators
 //
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Add {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Sub {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Mul {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Divide {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct PickRandom {
     min: Option<Value>,
     max: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct GreaterThen {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct LesserThen {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct EqualTo {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct And {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Or {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Not {
     a: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Join {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct LetterOf {
     index: Option<Value>,
     a: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct LengthOf {
     a: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Contains {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Modulo {
     a: Option<Value>,
     b: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Round {
     a: Option<Value>,
 }
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Absolute {
     a: Option<Value>,
 }
 
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct UnusedOpcode {
     name: String,
 }
 
+#[block_derive]
 #[derive(Debug,Clone)]
 pub struct InvalidOpcode {
     name: String,
@@ -1104,15 +1254,25 @@ impl<'de> Deserialize<'de> for BlockType {
                     None => None,
                 };
 
+                let prev = match v.get_key_value("parent") {
+                    Some(a) => Some(a.to_owned().1.to_string()),
+                    None => None,
+                };
+                let next = match v.get_key_value("next") {
+                    Some(a) => Some(a.to_owned().1.to_string()),
+                    None => None,
+                };
+
                 match &*name.to_string() {
                     block_names::MOTION_MOVE => {
-                        Ok(BlockType::Move(Move { steps: val1, }))
+                        Ok(BlockType::Move(Move { steps: val1, prev, next }))
                     },
                     block_names::MOTION_GOTO_XY => {
                         Ok(BlockType::Goto(Goto::Pos(
                             GotoPos {
                                 x: val1,
-                                y: val2
+                                y: val2,
+                                prev, next
                             }
                         )))
                     },
@@ -1120,105 +1280,113 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::MOTION_GOTO => {
                         Ok(BlockType::UnusedOpcode(UnusedOpcode{
                             name: block_names::MOTION_GOTO.to_string(),
+                            prev, next
                         }))
                     },
                     block_names::MOTION_GOTO_MENU => {
                         Ok(BlockType::Goto(Goto::Option(
                             GotoOption {
                                 option: MovementOption::from(val1),
+                                prev, next
                             }
                         )))
                     },
                     block_names::MOTION_TURN_LEFT => {
                         Ok(BlockType::RotateLeft(RotateLeft{
                             degrees: val1,
+                            prev, next
                         }))
                     },
                     block_names::MOTION_TURN_RIGHT => {
                         Ok(BlockType::RotateRight(RotateRight{
                             degrees: val1,
+                            prev, next
                         }))
                     },
                     // Unused: Mouse. It's always mouse.
                     block_names::MOTION_POINT_MENU => {
                         Ok(BlockType::Point(Point::Towards(
-                            PointOption { option: Some(Value::String(String::from("_mouse_"))) }
+                            PointOption { option: Some(Value::String(String::from("_mouse_"))), prev, next }
                         )))
                     }
 
                     block_names::MOTION_POINT_DIRECTION => {
                         Ok(BlockType::Point(Point::Direction(
-                            PointDirection { x: val1, y: val2 }
+                            PointDirection { x: val1, y: val2, prev, next }
                         )))
                     },
                     block_names::MOTION_POINT_TOWARDS => {
                         Ok(BlockType::Point(Point::Towards(
-                            PointOption { option: val1 }
+                            PointOption { option: val1, prev, next }
                         )))
                     },
                     block_names::MOTION_GLIDE_SECONDS_TO_XY => {
                         Ok(BlockType::Glide(Glide::Pos(
-                            GlidePos{ x: val1, y: val2 }
+                            GlidePos{ x: val1, y: val2, prev, next }
                         )))
                     },
                     // redundant, just goes to MOTION_GLIDE_TO_MENU
                     block_names::MOTION_GLIDE_TO => {
                         Ok(BlockType::UnusedOpcode(UnusedOpcode {
-                            name: block_names::MOTION_GLIDE_TO.to_string()
+                            name: block_names::MOTION_GLIDE_TO.to_string(),
+                            prev, next
                         }))
                     },
 
                     block_names::MOTION_GLIDE_TO_MENU => {
                         Ok(BlockType::Glide(Glide::Option(
-                            GlideOption { option: MovementOption::from(field1)}
+                            GlideOption { option: MovementOption::from(field1), prev, next}
                         )))
                     }
 
                     block_names::MOTION_IF_ON_EDGE_BOUNCE => {
-                        Ok(BlockType::IfOnEdgeBounce(IfOnEdgeBounce{}))
+                        Ok(BlockType::IfOnEdgeBounce(IfOnEdgeBounce{prev, next}))
                     },
                     block_names::MOTION_SET_ROTATION_STYLE => {
                         Ok(BlockType::SetRotationStyle(SetRotationStyle{
                             style: RotationStyle::from(val1),
+                            prev, next
                         }))
                     },
                     block_names::MOTION_CHANGE_X_BY => {
                         Ok(BlockType::ChangeX(
                             ChangeX{
                                 x: val1,
+                                prev, next
                             }
                         ))
                     }
                     block_names::MOTION_SET_X => {
                         Ok(BlockType::SetX(
-                            SetX { x: val1 }
+                            SetX { x: val1, prev, next }
                         ))
                     }
                     block_names::MOTION_CHANGE_Y_BY => {
                         Ok(BlockType::ChangeY(
-                            ChangeY { y: val1 }
+                            ChangeY { y: val1, prev, next }
                         ))
                     }
                     block_names::MOTION_SET_Y => {
                         Ok(BlockType::SetY(
-                            SetY {y: val1}
+                            SetY {y: val1, prev, next}
                         ))
                     }
                     block_names::MOTION_XPOSITION => {
                         Ok(BlockType::XPosition(
-                            XPosition{}
+                            XPosition{prev, next}
                         ))
                     }
                     block_names::MOTION_YPOSITION => {
                         Ok(BlockType::YPosition(
-                            YPosition{}
+                            YPosition{prev, next}
                         ))
                     }
                     block_names::MOTION_DIRECTION => {
                         Ok(BlockType::Direction(
-                            Direction{}
+                            Direction{prev, next}
                         ))
                     }
+                    // presumed unused
                     block_names::MOTION_SCROLL_RIGHT => {
                         todo!()
                     }
@@ -1239,6 +1407,7 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::SayForever(
                             SayForever{
                                 message: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1247,6 +1416,7 @@ impl<'de> Deserialize<'de> for BlockType {
                             Say{
                                 message: val1,
                                 secs: val2,
+                                prev, next
                             }
                         ))
                     }
@@ -1254,6 +1424,7 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::ThinkForever(
                             ThinkForever {
                                 message: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1262,22 +1433,24 @@ impl<'de> Deserialize<'de> for BlockType {
                             Think {
                                 message: val1,
                                 secs: val2,
+                                prev, next
                             }
                         ))
                     }
                     block_names::LOOKS_SHOW => {
-                        Ok(BlockType::ShowSprite(ShowSprite{}))
+                        Ok(BlockType::ShowSprite(ShowSprite{prev, next}))
                     }
                     block_names::LOOKS_HIDE => {
-                        Ok(BlockType::HideSprite(HideSprite{}))
+                        Ok(BlockType::HideSprite(HideSprite{prev, next}))
                     }
                     block_names::LOOKS_HIDE_ALL_SPRITES => {
-                        Ok(BlockType::HideAllSprites(HideAllSprites{}))
+                        Ok(BlockType::HideAllSprites(HideAllSprites{prev, next}))
                     }
                     block_names::LOOKS_SWITCH_COSTUME_TO => {
                         Ok(BlockType::SwitchCostume(
                             SwitchCostume {
                                 costume: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1285,6 +1458,7 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::SwitchBackdrop(
                             SwitchBackdrop {
                                 backdrop: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1292,17 +1466,18 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::SwitchBackdropAndWait(
                             SwitchBackdropAndWait {
                                 backdrop: val1,
+                                prev, next
                             }
                         ))
                     }
                     block_names::LOOKS_NEXT_COSTUME => {
                         Ok(BlockType::NextCostume(
-                            NextCostume
+                            NextCostume{prev, next}
                         ))
                     }
                     block_names::LOOKS_NEXT_BACKDROP => {
                         Ok(BlockType::NextBackdrop(
-                            NextBackdrop
+                            NextBackdrop{prev, next}
                         ))
                     }
                     block_names::LOOKS_CHANGE_EFFECT_BY => {
@@ -1310,6 +1485,7 @@ impl<'de> Deserialize<'de> for BlockType {
                             ChangeEffectBy {
                                 effect: val1,
                                 units: val2,
+                                prev, next
                             }
                         ))
                     }
@@ -1318,19 +1494,20 @@ impl<'de> Deserialize<'de> for BlockType {
                             SetEffectTo {
                                 effect: val1,
                                 percentage: val2,
+                                prev, next
                             }
                         ))
                     }
                     block_names::LOOKS_CLEAR_GRAPHICS_EFFECTS => {
                         Ok(BlockType::ClearGraphicEffects(
-                            ClearGraphicEffects{}
+                            ClearGraphicEffects{prev, next}
                         ))
                     }
                     block_names::LOOKS_CHANGE_SIZE_BY => {
-                        Ok(BlockType::ChangeSize(ChangeSize { units: val1 }))
+                        Ok(BlockType::ChangeSize(ChangeSize { units: val1, prev, next }))
                     }
                     block_names::LOOKS_SET_SIZE_TO => {
-                        Ok(BlockType::SetSize(SetSize { percentage: val1 }))
+                        Ok(BlockType::SetSize(SetSize { percentage: val1, prev, next }))
                     }
                     block_names::LOOKS_CHANGE_STRETCH_BY => {
                         todo!()
@@ -1341,16 +1518,18 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::LOOKS_GOTO_FRONT_BACK => {
                         Ok(BlockType::GotoLayer(GotoLayer{
                             option: LayerOption::from(val1),
+                            prev, next
                         }))
                     }
                     block_names::LOOKS_GO_FORWARD_BACKWARD_LAYERS => {
                         Ok(BlockType::ChangeLayer(ChangeLayer{
                             direction: LayerDirection::from(val1),
                             by: val2,
+                            prev, next
                         }))
                     }
                     block_names::LOOKS_SIZE => {
-                        Ok(BlockType::Size(Size{}))
+                        Ok(BlockType::Size(Size{prev, next}))
                     }
                     block_names::LOOKS_COSTUME => {
                         Ok(BlockType::Costume(
@@ -1361,10 +1540,10 @@ impl<'de> Deserialize<'de> for BlockType {
                         match field1 {
                             Some(Value::String(a)) => match a.as_str() {
                                 "number" => Ok(BlockType::Costume(
-                                    Costume::ByNumber(CostumeByNumber{})
+                                    Costume::ByNumber(CostumeByNumber{prev, next})
                                 )),
                                 "name" => Ok(BlockType::Costume(
-                                    Costume::ByName(CostumeByName{})
+                                    Costume::ByName(CostumeByName{prev, next})
                                 )),
                                 _ => {return Err(format!("invalid option given for costume number/name")).map_err(de::Error::custom);},
                             }
@@ -1380,10 +1559,10 @@ impl<'de> Deserialize<'de> for BlockType {
                         match field1 {
                             Some(Value::String(a)) => match a.as_str() {
                                 "number" => Ok(BlockType::Backdrop(
-                                    Backdrop::ByNumber(BackdropByNumber{})
+                                    Backdrop::ByNumber(BackdropByNumber{prev, next})
                                 )),
                                 "name" => Ok(BlockType::Backdrop(
-                                    Backdrop::ByName(BackdropByName{})
+                                    Backdrop::ByName(BackdropByName{prev, next})
                                 )),
                                 _ => {return Err(format!("invalid option given for backdrop number/name")).map_err(de::Error::custom);},
                             }
@@ -1393,80 +1572,89 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::SOUND_PLAY => {
                         Ok(BlockType::PlaySound(PlaySound{
                             sound: val1,
+                            prev, next
                         }))
                     }
                     block_names::SOUND_PLAY_UNTIL_DONE => {
                         Ok(BlockType::PlaySoundUntilDone(PlaySoundUntilDone{
                             sound: val1,
+                            prev, next
                         }))
                     }
                     block_names::SOUND_STOP_ALL_SOUNDS => {
-                        Ok(BlockType::StopAllSounds(StopAllSounds{}))
+                        Ok(BlockType::StopAllSounds(StopAllSounds{prev, next}))
                     }
                     block_names::SOUND_SET_EFFECT_TO => {
                         Ok(BlockType::SetEffectTo(SetEffectTo{
                             effect: val1,
                             percentage: val2,
+                            prev, next
                         }))
                     }
                     block_names::SOUND_CHANGE_EFFECT_BY => {
                         Ok(BlockType::ChangeEffectBy(ChangeEffectBy{
                             effect: val1,
                             units: val2,
+                            prev, next
                         }))
                     }
                     block_names::SOUND_CLEAR_EFFECTS => {
-                        Ok(BlockType::ClearSoundEffects(ClearSoundEffects{}))
+                        Ok(BlockType::ClearSoundEffects(ClearSoundEffects{prev, next}))
                     }
                     block_names::SOUND_SET_VOLUME_TO => {
                         Ok(BlockType::SetVolumeTo(SetVolumeTo{
                             percentage: val1,
+                            prev, next
                         }))
                     }
                     block_names::SOUND_CHANGE_VOLUME_BY => {
                         Ok(BlockType::ChangeVolumeBy(ChangeVolumeBy{
                             units: val1,
+                            prev, next
                         }))
                     }
                     block_names::SOUND_VOLUME => {
-                        Ok(BlockType::Volume(Volume{}))
+                        Ok(BlockType::Volume(Volume{prev, next}))
                     }
 
                     block_names::EVENT_WHEN_TOUCHING_OBJECT => {
                         todo!()
                     }
                     block_names::EVENT_BROADCAST => {
-                        Ok(BlockType::Broadcast(Broadcast { broadcast: val1 }))
+                        Ok(BlockType::Broadcast(Broadcast { broadcast: val1, prev, next }))
                     }
                     block_names::EVENT_BROADCAST_AND_WAIT => {
-                        Ok(BlockType::BroadcastAndWait(BroadcastAndWait { broadcast: val1 }))
+                        Ok(BlockType::BroadcastAndWait(BroadcastAndWait { broadcast: val1, prev, next }))
                     }
                     block_names::EVENT_WHEN_GREATER_THAN => {
                         Ok(BlockType::WhenOptionGreaterThen(
                             WhenOptionGreaterThen {
                                 option: EventOption::from(val1),
                                 by: val2,
+                                prev, next
                             }
                         ))
                     }
                     block_names::EVENT_WHEN_FLAG_CLICKED => {
-                        Ok(BlockType::WhenGreenFlagClicked(WhenGreenFlagClicked{}))
+                        Ok(BlockType::WhenGreenFlagClicked(WhenGreenFlagClicked{prev, next}))
                     }
                     block_names::EVENT_WHEN_KEY_PRESSED => {
                         Ok(BlockType::WhenKeyPressed(WhenKeyPressed{
                             key: Key::from(val1),
+                            prev, next
                         }))
                     }
                     block_names::EVENT_WHEN_THIS_SPRITECLICKED => {
-                        Ok(BlockType::WhenSpriteClicked(WhenSpriteClicked{}))
+                        Ok(BlockType::WhenSpriteClicked(WhenSpriteClicked{prev, next}))
                     }
                     block_names::EVENT_WHEN_STAGE_CLICKED => {
-                        Ok(BlockType::WhenStageClicked(WhenStageClicked{}))
+                        Ok(BlockType::WhenStageClicked(WhenStageClicked{prev, next}))
                     }
                     block_names::EVENT_WHEN_BACKDROP_SWITCHESTO => {
                         Ok(BlockType::WhenBackdropSwitchesTo(
                             WhenBackdropSwitchesTo{
                                 backdrop: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1474,6 +1662,7 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::WhenIRecieveBroadcast(
                             WhenIRecieveBroadcast{
                                 broadcast: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1482,6 +1671,7 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::Repeat(
                             Repeat{
                                 units: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1489,6 +1679,7 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::RepeatUntil(
                             RepeatUntil{
                                 condition: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1496,6 +1687,7 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::RepeatUntil(
                             RepeatUntil{
                                 condition: val1,
+                                prev, next
                             }
                         ))
                     }
@@ -1504,17 +1696,19 @@ impl<'de> Deserialize<'de> for BlockType {
                     }
                     block_names::CONTROL_FOREVER => {
                         Ok(BlockType::Forever(
-                            Forever{}
+                            Forever{prev, next}
                         ))
                     }
                     block_names::CONTROL_WAIT => {
                         Ok(BlockType::WaitSeconds(WaitSeconds{
                             seconds: val1,
+                            prev, next
                         }))
                     }
                     block_names::CONTROL_WAIT_UNTIL => {
                         Ok(BlockType::WaitUntil(WaitUntil{
                             condition: val1,
+                            prev, next
                         }))
                     }
                     block_names::CONTROL_IF => {
@@ -1522,6 +1716,7 @@ impl<'de> Deserialize<'de> for BlockType {
                             IfThen{
                                 condition: val1,
                                 then: val2,
+                                prev, next
                             }
                         ))
                     }
@@ -1531,19 +1726,21 @@ impl<'de> Deserialize<'de> for BlockType {
                                 condition: val1,
                                 then: val2,
                                 otherwise: val3,
+                                prev, next
                             }
                         ))
                     }
                     block_names::CONTROL_STOP => {
-                        Ok(BlockType::StopAll(StopAll{}))
+                        Ok(BlockType::StopAll(StopAll{prev, next}))
                     }
                     block_names::CONTROL_CREATE_CLONE_OF => {
                         Ok(BlockType::CreateCloneOf(CreateCloneOf{
                             of: SpriteOption::from(val1),
+                            prev, next
                         }))
                     }
                     block_names::CONTROL_DELETE_THIS_CLONE => {
-                        Ok(BlockType::DeleteClone(DeleteClone{}))
+                        Ok(BlockType::DeleteClone(DeleteClone{prev, next}))
                     }
                     block_names::CONTROL_GET_COUNTER => {
                         todo!()
@@ -1564,70 +1761,78 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::SENSING_TOUCHING_OBJECT_MENU => {
                         Ok(BlockType::TouchingMenu(TouchingMenu{
                             touching: SensingOption::from(field1),
+                            prev, next
                         }))
                     }
 
                     block_names::SENSING_TOUCHING_OBJECT => {
                         Ok(BlockType::Touching(Touching{
                             touching: val1,
+                            prev, next
                         }))
                     }
 
                     block_names::SENSING_TOUCHING_COLOR => {
                         Ok(BlockType::TouchingColor(TouchingColor {
                             color: val1,
+                            prev, next
                         }))
                     }
                     block_names::SENSING_COLOR_IS_TOUCHING_COLOR => {
                         Ok(BlockType::ColorTouchingColor(ColorTouchingColor {
                             color1: val1,
                             color2: val2,
+                            prev, next
                         }))
                     }
                     block_names::SENSING_DISTANCE_TO => {
                         Ok(BlockType::DistanceTo(DistanceTo{
                             to: SensingOption::from(val1),
+                            prev, next
                         }))
                     }
                     block_names::SENSING_TIMER => {
-                        Ok(BlockType::Timer(Timer{}))
+                        Ok(BlockType::Timer(Timer{prev, next}))
                     }
                     block_names::SENSING_RESET_TIMER => {
-                        Ok(BlockType::ResetTimer(ResetTimer{}))
+                        Ok(BlockType::ResetTimer(ResetTimer{prev, next}))
                     }
                     // uses fields.
                     block_names::SENSING_OF => {
                         todo!()
                     }
                     block_names::SENSING_MOUSE_X => {
-                        Ok(BlockType::MouseX(MouseX{}))
+                        Ok(BlockType::MouseX(MouseX{prev, next}))
                     }
                     block_names::SENSING_MOUSE_Y => {
-                        Ok(BlockType::MouseY(MouseY{}))
+                        Ok(BlockType::MouseY(MouseY{prev, next}))
                     }
                     block_names::SENSING_SET_DRAG_MODE => {
                         Ok(BlockType::SetDragMode(SetDragMode{
                             option: DraggableOption::from(val1),
+                            prev, next
                         }))
                     }
                     block_names::SENSING_MOUSE_DOWN => {
-                        Ok(BlockType::MouseDown(MouseDown{}))
+                        Ok(BlockType::MouseDown(MouseDown{prev, next}))
                     }
                     block_names::SENSING_KEY_PRESSED => {
                         Ok(BlockType::KeyPressed(KeyPressed{
                             key: Key::from(val1),
+                            prev, next
                         }))
                     }
                     block_names::SENSING_CURRENT => {
                         Ok(BlockType::CurrentTime(CurrentTime{
                             option: CurrentTimeOption::from(val1),
+                            prev, next
                         }))
                     }
                     block_names::SENSING_DAYS_SINCE_2000 => {
                         Ok(BlockType::DaysSince2000(DaysSince2000{}))
                     }
                     block_names::SENSING_LOUDNESS => {
-                        Ok(BlockType::Loudness(Loudness{}))
+                        Ok(BlockType::Loudness(Loudness{prev, next}))
                     }
                     block_names::SENSING_LOUD => {
                         todo!() // What?
@@ -1636,10 +1841,10 @@ impl<'de> Deserialize<'de> for BlockType {
                         todo!()
                     }
                     block_names::SENSING_ANSWER => {
-                        Ok(BlockType::Answer(Answer{}))
+                        Ok(BlockType::Answer(Answer{prev, next}))
                     }
                     block_names::SENSING_USERNAME => {
-                        Ok(BlockType::Username(Username{}))
+                        Ok(BlockType::Username(Username{prev, next}))
                     }
                     block_names::SENSING_USER_ID => {
                         todo!()
@@ -1649,110 +1854,129 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::Add(Add{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_SUBTRACT => {
                         Ok(BlockType::Sub(Sub{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_MULTIPLY => {
                         Ok(BlockType::Mul(Mul{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_DIVIDE => {
                         Ok(BlockType::Divide(Divide{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_LESSER_THEN => {
                         Ok(BlockType::LesserThen(LesserThen{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_EQUALS => {
                         Ok(BlockType::EqualTo(EqualTo{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_GREATER_THEN => {
                         Ok(BlockType::GreaterThen(GreaterThen{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_AND => {
                         Ok(BlockType::And(And{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_OR => {
                         Ok(BlockType::Or(Or{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_NOT => {
                         Ok(BlockType::Not(Not{
                             a: val1,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_RANDOM => {
                         Ok(BlockType::PickRandom(PickRandom{
                             min: val1,
                             max: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_JOIN => {
                         Ok(BlockType::Join(Join{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_LETTER_OF => {
                         Ok(BlockType::LetterOf(LetterOf{
                             index: val1,
                             a: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_LENGTH => {
                         Ok(BlockType::LengthOf(LengthOf{
                             a: val1,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_CONTAINS => {
                         Ok(BlockType::Contains(Contains{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_MOD => {
                         Ok(BlockType::Modulo(Modulo{
                             a: val1,
                             b: val2,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_ROUND => {
                         Ok(BlockType::Round(Round{
                             a: val1,
+                            prev, next
                         }))
                     }
                     block_names::OPERATOR_MATHOP => {
                         Ok(BlockType::Absolute(Absolute{
                             a: val1,
+                            prev, next
                         }))
                     }
 
                     block_names::SOUND_SOUNDS_MENU => {
                         Ok(BlockType::SoundSoundsMenu(SoundSoundsMenu{
                             option: val1,
+                            prev, next
                         }))
                     }
 
@@ -1763,7 +1987,8 @@ impl<'de> Deserialize<'de> for BlockType {
 
                     block_names::SOUND_EFFECTS_MENU => {
                         Ok(BlockType::SoundEffectsMenu(SoundEffectsMenu{
-                            option: SoundEffect::from(val1)
+                            option: SoundEffect::from(val1),
+                            prev, next
                         }))
                     }
 
