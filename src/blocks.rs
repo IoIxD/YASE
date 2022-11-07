@@ -1,3 +1,8 @@
+///
+/// This module is specifically for deserialization of blocks in the .json
+/// files into their respective types, in such a way that is Rust-idomatic,
+/// deals away with unused data, and is generally nicer to work with.
+
 extern crate proc;
 
 use std::{collections::HashMap};
