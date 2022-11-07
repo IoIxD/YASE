@@ -1247,14 +1247,6 @@ impl<'de> Deserialize<'de> for BlockType {
                     Some(a) => Some(a.to_owned()),
                     None => None,
                 };
-                let field2 = match field_values.get(1) {
-                    Some(a) => Some(a.to_owned()),
-                    None => None,
-                };
-                let field3 = match field_values.get(2) {
-                    Some(a) => Some(a.to_owned()),
-                    None => None,
-                };
 
                 let prev = match v.get_key_value("parent") {
                     Some(a) => Some(a.to_owned().1.to_string()),
