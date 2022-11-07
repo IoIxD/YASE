@@ -24,6 +24,7 @@ pub const MOTION_SCROLL_UP: &str = "motion_scroll_up";
 pub const MOTION_ALIGN_SCENE: &str = "motion_align_scene";
 pub const MOTION_XSCROLL: &str = "motion_xscroll";
 pub const MOTION_YSCROLL: &str = "motion_yscroll";
+pub const MOTION_GOTO_MENU: &str = "motion_goto_menu";
 
 pub const LOOKS_SAY: &str = "looks_say";
 pub const LOOKS_SAY_FOR_SECS: &str = "looks_sayforsecs";

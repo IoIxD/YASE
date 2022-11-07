@@ -184,6 +184,11 @@ pub enum BlockType {
     Round(Round),
     Absolute(Absolute),
 
+    // """goto menus""" god this sucks
+    MotionGotoMenu(MotionGotoMenu),
+    SoundEffectsMenu(SoundEffectsMenu),
+    SoundSoundsMenu(SoundSoundsMenu),
+
     InvalidOpcode(InvalidOpcode),
 }
 
@@ -203,6 +208,10 @@ pub struct RotateRight {
     degrees: Option<Value>
 }
 #[derive(Debug,Clone)]
+pub struct MotionGotoMenu {
+    option: Option<MovementOption>
+}
+#[derive(Debug,Clone)]
 pub enum MovementOption {
     RandomPosition,
     MousePointer,
@@ -215,15 +224,27 @@ impl MovementOption {
                     Value::String(a) => match a.as_str() {
                         "_random_" => Some(Self::RandomPosition),
                         "_mouse_" => Some(Self::MousePointer),
-                        _ => None,
+                        _ => {
+                            #[cfg(debug_assertions)]
+                            panic!("invalid movement option: {}",a);
+                            #[cfg(not(debug_assertions))]
+                            None
+                        },
                     },
-                    _ => None
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid type given for movement option, expected string");
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             None => None,
         }
     }
 }
+
+
 
 #[derive(Debug,Clone)]
 pub enum Goto {
@@ -237,7 +258,7 @@ pub struct GotoPos {
 }
 #[derive(Debug,Clone)]
 pub struct GotoOption {
-    option: Option<MovementOption>,
+    option: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub enum Glide {
@@ -251,7 +272,7 @@ pub struct GlidePos {
 }
 #[derive(Debug,Clone)]
 pub struct GlideOption {
-    option: Option<MovementOption>,
+    option: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub enum Point {
@@ -265,7 +286,7 @@ pub struct PointDirection {
 }
 #[derive(Debug,Clone)]
 pub struct PointOption {
-    option: Option<MovementOption>,
+    option: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct ChangeX {
@@ -300,9 +321,19 @@ impl RotationStyle {
                         "left-right" => Some(Self::LeftRight),
                         "don't rotate" => Some(Self::DontRotate),
                         "all around" => Some(Self::AllAround),
-                        _ => None,
-                    }
-                    _ => None
+                        _ => {
+                            #[cfg(debug_assertions)]
+                            panic!("invalid rotation style option: {}",a);
+                            #[cfg(not(debug_assertions))]
+                            None
+                        },
+                    },
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid type given for rotation style, expected string");
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             None => None,
@@ -387,7 +418,12 @@ impl LayerOption {
                 match a.as_str() {
                     "front" => Some(Self::Front),
                     "back" => Some(Self::Back),
-                    _ => None
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid layer option: {}",a);
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             _ => None,
@@ -410,7 +446,12 @@ impl LayerDirection {
                 match a.as_str() {
                     "forward" => Some(Self::Forward),
                     "backward" => Some(Self::Backward),
-                    _ => None,
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid layer direction: {}",a);
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             _ => None,
@@ -459,6 +500,14 @@ pub struct StartSound {
 #[derive(Debug,Clone)]
 pub struct StopAllSounds;
 #[derive(Debug,Clone)]
+pub struct SoundEffectsMenu {
+    option: Option<SoundEffect>
+}
+#[derive(Debug,Clone)]
+pub struct SoundSoundsMenu {
+    option: Option<Value>
+}
+#[derive(Debug,Clone)]
 pub enum SoundEffect {
     Pitch,
     Pan
@@ -470,7 +519,12 @@ impl SoundEffect {
                 match a.as_str() {
                     "PITCH" => Some(Self::Pitch),
                     "PAN" => Some(Self::Pan),
-                    _ => None
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid sound effect: {}",a);
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             _ => None,
@@ -479,12 +533,12 @@ impl SoundEffect {
 }
 #[derive(Debug,Clone)]
 pub struct ChangeEffectBy {
-    effect: Option<SoundEffect>,
+    effect: Option<Value>,
     units: Option<Value>,
 }
 #[derive(Debug,Clone)]
 pub struct SetEffectTo {
-    effect: Option<SoundEffect>,
+    effect: Option<Value>,
     percentage: Option<Value>,
 }
 #[derive(Debug,Clone)]
@@ -558,7 +612,12 @@ impl EventOption {
                 match a.as_str() {
                     "loudness" => Some(Self::Loudness),
                     "timer" => Some(Self::Timer),
-                    _ => None
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid event option: {}",a);
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             _ => None,
@@ -709,7 +768,12 @@ impl DraggableOption {
                 match a {
                     drag => Some(Self::Draggable),
                     not_drag => Some(Self::NotDraggable),
-                    _ => None,
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid draggable option: {:?}",a);
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             None => None,
@@ -760,9 +824,19 @@ impl CurrentTimeOption {
                         "hour" => Some(Self::Hour),
                         "minute" => Some(Self::Minute),
                         "second" => Some(Self::Second),
-                        _ => None,
+                        _ => {
+                            #[cfg(debug_assertions)]
+                            panic!("invalid time option: {}",a);
+                            #[cfg(not(debug_assertions))]
+                            None
+                        },
                     }
-                    _ => None,
+                    _ => {
+                        #[cfg(debug_assertions)]
+                        panic!("invalid type given for current time, expected string");
+                        #[cfg(not(debug_assertions))]
+                        None
+                    },
                 }
             }
             None => None,
@@ -1030,7 +1104,7 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::MOTION_GOTO => {
                         Ok(BlockType::Goto(Goto::Option(
                             GotoOption {
-                                option: MovementOption::from(val1)
+                                option: val1,
                             }
                         )))
                     },
@@ -1051,7 +1125,7 @@ impl<'de> Deserialize<'de> for BlockType {
                     },
                     block_names::MOTION_POINT_TOWARDS => {
                         Ok(BlockType::Point(Point::Towards(
-                            PointOption { option: MovementOption::from(val1) }
+                            PointOption { option: val1 }
                         )))
                     },
                     block_names::MOTION_GLIDE_SECONDS_TO_XY => {
@@ -1061,7 +1135,7 @@ impl<'de> Deserialize<'de> for BlockType {
                     },
                     block_names::MOTION_GLIDE_TO => {
                         Ok(BlockType::Glide(Glide::Option(
-                            GlideOption { option: MovementOption::from(val1)}
+                            GlideOption { option: val1}
                         )))
                     },
                     block_names::MOTION_IF_ON_EDGE_BOUNCE => {
@@ -1198,7 +1272,7 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::LOOKS_CHANGE_EFFECT_BY => {
                         Ok(BlockType::ChangeEffectBy(
                             ChangeEffectBy {
-                                effect: SoundEffect::from(val1),
+                                effect: val1,
                                 units: val2,
                             }
                         ))
@@ -1206,7 +1280,7 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::LOOKS_SET_EFFECT_TO => {
                         Ok(BlockType::SetEffectTo(
                             SetEffectTo {
-                                effect: SoundEffect::from(val1),
+                                effect: val1,
                                 percentage: val2,
                             }
                         ))
@@ -1285,27 +1359,18 @@ impl<'de> Deserialize<'de> for BlockType {
                     }
                     block_names::SOUND_SET_EFFECT_TO => {
                         Ok(BlockType::SetEffectTo(SetEffectTo{
-                            effect: SoundEffect::from(val1),
+                            effect: val1,
                             percentage: val2,
                         }))
                     }
                     block_names::SOUND_CHANGE_EFFECT_BY => {
                         Ok(BlockType::ChangeEffectBy(ChangeEffectBy{
-                            effect: SoundEffect::from(val1),
+                            effect: val1,
                             units: val2,
                         }))
                     }
                     block_names::SOUND_CLEAR_EFFECTS => {
                         Ok(BlockType::ClearSoundEffects(ClearSoundEffects{}))
-                    }
-                    /*block_names::SOUND_SOUNDS_MENU => {
-                        todo!()
-                    }*/
-                    block_names::SOUNDS_BEATS_MENU => {
-                        todo!()
-                    }
-                    block_names::SOUND_EFFECTS_MENU => {
-                        todo!()
                     }
                     block_names::SOUND_SET_VOLUME_TO => {
                         Ok(BlockType::SetVolumeTo(SetVolumeTo{
@@ -1631,6 +1696,32 @@ impl<'de> Deserialize<'de> for BlockType {
                             a: val1,
                         }))
                     }
+
+                    block_names::MOTION_GOTO_MENU => {
+                        Ok(BlockType::MotionGotoMenu(MotionGotoMenu{
+                            option: MovementOption::from(val1)
+                        }))
+                    }
+
+                    block_names::SOUND_SOUNDS_MENU => {
+                        Ok(BlockType::SoundSoundsMenu(SoundSoundsMenu{
+                            option: val1,
+                        }))
+                    }
+
+                    // Unused
+                    /*block_names::SOUNDS_BEATS_MENU => {
+
+                    }*/
+
+                    block_names::SOUND_EFFECTS_MENU => {
+                        Ok(BlockType::SoundEffectsMenu(SoundEffectsMenu{
+                            option: SoundEffect::from(val1)
+                        }))
+                    }
+
+
+
                     _ => {
                         #[cfg(debug_assertions)]
                         return Err(format!("invalid opcode {}",a.1)).map_err(de::Error::custom);
