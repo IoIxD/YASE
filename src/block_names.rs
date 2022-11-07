@@ -4,12 +4,16 @@
 pub const MOTION_MOVE: &str = "motion_movesteps";
 pub const MOTION_GOTO_XY: &str = "motion_gotoxy";
 pub const MOTION_GOTO: &str = "motion_goto";
+pub const MOTION_GOTO_MENU: &str = "motion_goto_menu";
+
 pub const MOTION_TURN_LEFT: &str = "motion_turnright";
 pub const MOTION_TURN_RIGHT: &str = "motion_turnleft";
+pub const MOTION_POINT_MENU: &str = "motion_pointtowards_menu";
 pub const MOTION_POINT_DIRECTION: &str = "motion_pointindirection";
 pub const MOTION_POINT_TOWARDS: &str = "motion_pointtowards";
 pub const MOTION_GLIDE_SECONDS_TO_XY: &str = "motion_glidesecstoxy";
 pub const MOTION_GLIDE_TO: &str = "motion_glideto";
+pub const MOTION_GLIDE_TO_MENU: &str = "motion_glideto_menu";
 pub const MOTION_IF_ON_EDGE_BOUNCE: &str = "motion_ifonedgebounce";
 pub const MOTION_SET_ROTATION_STYLE: &str = "motion_setrotationstyle";
 pub const MOTION_CHANGE_X_BY: &str = "motion_changexby";
@@ -24,7 +28,6 @@ pub const MOTION_SCROLL_UP: &str = "motion_scroll_up";
 pub const MOTION_ALIGN_SCENE: &str = "motion_align_scene";
 pub const MOTION_XSCROLL: &str = "motion_xscroll";
 pub const MOTION_YSCROLL: &str = "motion_yscroll";
-pub const MOTION_GOTO_MENU: &str = "motion_goto_menu";
 
 pub const LOOKS_SAY: &str = "looks_say";
 pub const LOOKS_SAY_FOR_SECS: &str = "looks_sayforsecs";
@@ -36,8 +39,10 @@ pub const LOOKS_HIDE_ALL_SPRITES: &str = "looks_hideallsprites";
 pub const LOOKS_SWITCH_COSTUME_TO: &str = "looks_switchcostumeto";
 pub const LOOKS_SWITCH_BACKDROP_TO: &str = "looks_switchbackdropto";
 pub const LOOKS_SWITCH_BACKDROP_TO_AND_WAIT: &str = "looks_switchbackdroptoandwait";
+pub const LOOKS_COSTUME: &str = "looks_costume";
 pub const LOOKS_NEXT_COSTUME: &str = "looks_nextcostume";
 pub const LOOKS_NEXT_BACKDROP: &str = "looks_nextbackdrop";
+pub const LOOKS_BACKDROP: &str = "looks_backdrops";
 pub const LOOKS_CHANGE_EFFECT_BY: &str = "looks_changeeffectby";
 pub const LOOKS_SET_EFFECT_TO: &str = "looks_seteffectto";
 pub const LOOKS_CLEAR_GRAPHICS_EFFECTS: &str = "looks_cleargraphiceffects";
@@ -93,6 +98,7 @@ pub const CONTROL_CLEAR_COUNTER: &str = "control_clear_counter";
 pub const CONTROL_ALL_AT_ONCE: &str = "control_all_at_once";
 pub const CONTROL_START_AS_CLONE: &str = "control_start_as_clone";
 
+pub const SENSING_TOUCHING_OBJECT_MENU: &str = "sensing_touchingobjectmenu";
 pub const SENSING_TOUCHING_OBJECT: &str = "sensing_touchingobject";
 pub const SENSING_TOUCHING_COLOR: &str = "sensing_touchingcolor";
 pub const SENSING_COLOR_IS_TOUCHING_COLOR: &str = "sensing_coloristouchingcolor";

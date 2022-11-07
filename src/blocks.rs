@@ -44,6 +44,9 @@ pub enum Value {
     Number(f64),
     String(String),
 }
+
+pub trait Block {}
+
 #[derive(Debug,Clone)]
 pub enum BlockType {
     // Motion blocks
@@ -145,6 +148,7 @@ pub enum BlockType {
     // Sensing blocks
 
     Touching(Touching),
+    TouchingMenu(TouchingMenu),
     TouchingColor(TouchingColor),
     ColorTouchingColor(ColorTouchingColor),
     DistanceTo(DistanceTo),
@@ -184,11 +188,13 @@ pub enum BlockType {
     Round(Round),
     Absolute(Absolute),
 
-    // """goto menus""" god this sucks
-    MotionGotoMenu(MotionGotoMenu),
+    // """menus""" god this sucks
     SoundEffectsMenu(SoundEffectsMenu),
     SoundSoundsMenu(SoundSoundsMenu),
+    PointTowardsMenu(PointTowardsMenu),
 
+    // some opcodes are straight up unused or redundant and should be labelled as such.
+    UnusedOpcode(UnusedOpcode),
     InvalidOpcode(InvalidOpcode),
 }
 
@@ -206,10 +212,6 @@ pub struct RotateLeft {
 #[derive(Debug,Clone)]
 pub struct RotateRight {
     degrees: Option<Value>
-}
-#[derive(Debug,Clone)]
-pub struct MotionGotoMenu {
-    option: Option<MovementOption>
 }
 #[derive(Debug,Clone)]
 pub enum MovementOption {
@@ -258,7 +260,7 @@ pub struct GotoPos {
 }
 #[derive(Debug,Clone)]
 pub struct GotoOption {
-    option: Option<Value>,
+    option: Option<MovementOption>,
 }
 #[derive(Debug,Clone)]
 pub enum Glide {
@@ -272,13 +274,18 @@ pub struct GlidePos {
 }
 #[derive(Debug,Clone)]
 pub struct GlideOption {
-    option: Option<Value>,
+    option: Option<MovementOption>,
+}
+#[derive(Debug,Clone)]
+pub struct PointTowardsMenu {
+    option: Option<Point>,
 }
 #[derive(Debug,Clone)]
 pub enum Point {
     Direction(PointDirection),
     Towards(PointOption),
 }
+
 #[derive(Debug,Clone)]
 pub struct PointDirection {
     x: Option<Value>,
@@ -438,6 +445,7 @@ pub struct GotoLayer {
 pub enum LayerDirection {
     Forward,
     Backward,
+    Value(Value),
 }
 impl LayerDirection {
     fn from(val: Option<Value>) -> Option<LayerDirection> {
@@ -446,12 +454,7 @@ impl LayerDirection {
                 match a.as_str() {
                     "forward" => Some(Self::Forward),
                     "backward" => Some(Self::Backward),
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid layer direction: {}",a);
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
+                    _ => Some(Self::Value(Value::String(a))),
                 }
             }
             _ => None,
@@ -466,15 +469,18 @@ pub struct ChangeLayer {
 #[derive(Debug,Clone)]
 pub enum Costume {
     ByNumber(CostumeByNumber),
-    ByName(CostumeByName)
+    ByName(CostumeByName),
+    WithName(Option<Value>),
 }
 #[derive(Debug,Clone)]
-pub struct CostumeByNumber;#[derive(Debug,Clone)]
+pub struct CostumeByNumber;
+#[derive(Debug,Clone)]
 pub struct CostumeByName;
 #[derive(Debug,Clone)]
 pub enum Backdrop {
     ByNumber(BackdropByNumber),
-    ByName(BackdropByName)
+    ByName(BackdropByName),
+    WithName(Option<Value>),
 }
 #[derive(Debug,Clone)]
 pub struct BackdropByNumber;#[derive(Debug,Clone)]
@@ -727,6 +733,10 @@ impl SensingOption {
 }
 #[derive(Debug,Clone)]
 pub struct Touching {
+    touching: Option<Value>
+}
+#[derive(Debug,Clone)]
+pub struct TouchingMenu {
     touching: Option<SensingOption>
 }
 #[derive(Debug,Clone)]
@@ -942,6 +952,11 @@ pub struct Absolute {
 }
 
 #[derive(Debug,Clone)]
+pub struct UnusedOpcode {
+    name: String,
+}
+
+#[derive(Debug,Clone)]
 pub struct InvalidOpcode {
     name: String,
 }
@@ -1101,10 +1116,16 @@ impl<'de> Deserialize<'de> for BlockType {
                             }
                         )))
                     },
+                    // redundant, just goes to MOTION_GOTO_MENU
                     block_names::MOTION_GOTO => {
+                        Ok(BlockType::UnusedOpcode(UnusedOpcode{
+                            name: block_names::MOTION_GOTO.to_string(),
+                        }))
+                    },
+                    block_names::MOTION_GOTO_MENU => {
                         Ok(BlockType::Goto(Goto::Option(
                             GotoOption {
-                                option: val1,
+                                option: MovementOption::from(val1),
                             }
                         )))
                     },
@@ -1118,6 +1139,13 @@ impl<'de> Deserialize<'de> for BlockType {
                             degrees: val1,
                         }))
                     },
+                    // Unused: Mouse. It's always mouse.
+                    block_names::MOTION_POINT_MENU => {
+                        Ok(BlockType::Point(Point::Towards(
+                            PointOption { option: Some(Value::String(String::from("_mouse_"))) }
+                        )))
+                    }
+
                     block_names::MOTION_POINT_DIRECTION => {
                         Ok(BlockType::Point(Point::Direction(
                             PointDirection { x: val1, y: val2 }
@@ -1133,11 +1161,19 @@ impl<'de> Deserialize<'de> for BlockType {
                             GlidePos{ x: val1, y: val2 }
                         )))
                     },
+                    // redundant, just goes to MOTION_GLIDE_TO_MENU
                     block_names::MOTION_GLIDE_TO => {
-                        Ok(BlockType::Glide(Glide::Option(
-                            GlideOption { option: val1}
-                        )))
+                        Ok(BlockType::UnusedOpcode(UnusedOpcode {
+                            name: block_names::MOTION_GLIDE_TO.to_string()
+                        }))
                     },
+
+                    block_names::MOTION_GLIDE_TO_MENU => {
+                        Ok(BlockType::Glide(Glide::Option(
+                            GlideOption { option: MovementOption::from(field1)}
+                        )))
+                    }
+
                     block_names::MOTION_IF_ON_EDGE_BOUNCE => {
                         Ok(BlockType::IfOnEdgeBounce(IfOnEdgeBounce{}))
                     },
@@ -1316,6 +1352,11 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::LOOKS_SIZE => {
                         Ok(BlockType::Size(Size{}))
                     }
+                    block_names::LOOKS_COSTUME => {
+                        Ok(BlockType::Costume(
+                            Costume::WithName(field1)
+                        ))
+                    }
                     block_names::LOOKS_COSTUME_NUMBER_NAME => {
                         match field1 {
                             Some(Value::String(a)) => match a.as_str() {
@@ -1329,6 +1370,11 @@ impl<'de> Deserialize<'de> for BlockType {
                             }
                             _ => {return Err(format!("no option given for costume number/name")).map_err(de::Error::custom);},
                         }
+                    }
+                    block_names::LOOKS_BACKDROP => {
+                        Ok(BlockType::Backdrop(
+                            Backdrop::WithName(field1)
+                        ))
                     }
                     block_names::LOOKS_BACKDROP_NUMBER_NAME => {
                         match field1 {
@@ -1515,11 +1561,18 @@ impl<'de> Deserialize<'de> for BlockType {
                         todo!()
                     }
 
-                    block_names::SENSING_TOUCHING_OBJECT => {
-                        Ok(BlockType::Touching(Touching{
-                            touching: SensingOption::from(val1),
+                    block_names::SENSING_TOUCHING_OBJECT_MENU => {
+                        Ok(BlockType::TouchingMenu(TouchingMenu{
+                            touching: SensingOption::from(field1),
                         }))
                     }
+
+                    block_names::SENSING_TOUCHING_OBJECT => {
+                        Ok(BlockType::Touching(Touching{
+                            touching: val1,
+                        }))
+                    }
+
                     block_names::SENSING_TOUCHING_COLOR => {
                         Ok(BlockType::TouchingColor(TouchingColor {
                             color: val1,
@@ -1694,12 +1747,6 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::OPERATOR_MATHOP => {
                         Ok(BlockType::Absolute(Absolute{
                             a: val1,
-                        }))
-                    }
-
-                    block_names::MOTION_GOTO_MENU => {
-                        Ok(BlockType::MotionGotoMenu(MotionGotoMenu{
-                            option: MovementOption::from(val1)
                         }))
                     }
 
