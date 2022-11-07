@@ -16,9 +16,9 @@ use crate::block_names;
 /// It should be noted that the following rules are applied when translating
 /// these blocks:
 /// - Blocks that are the same but with a different argument are represented by an enum that leads to the respective types. For example, "goto <option>" and "goto "<x, y>" are one "goto" enum with a "Pos" and "Option" option.
-/// - Since there's no logic here, Scratch's "sprite globals" i.e. "x position" are also represented by structs, and its up to you to resolve them. This also goes for functions with no arguments such as "next costume"
-/// - Some blocks have special cases where things are combined. Those are documented as such.
-///
+/// - Since there's no logic here, Scratch's "sprite globals" i.e. "x position" are also represented by structs, and its up to you to resolve them. This also goes for functions with no arguments such as "next costume". They're not just enums because...
+/// - **Every single struct has a 'prev' and 'next' field, even if it doesn't show up in the documentation!** These represent the previous and next block, respectively.
+/// - Blocks that are considered redundant or unused or marked as "UnusedOpcode" structs to avoid confusion. These are blocks that have a value that isn't even used, and it just...goes to the next block and uses that value.
 
 /// IDs that tell us whether a block has a shadow or not, according to Scratch's deserialization code
 pub enum Inputs {
