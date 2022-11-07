@@ -787,11 +787,10 @@ pub enum SpriteOption {
 }
 impl SpriteOption {
     fn from(val: Option<Value>) -> Option<SpriteOption> {
-        let myself: &'static str = "_myself_";
         match val {
             Some(Value::String(a)) => {
                 match a.as_str() {
-                    myself => Some(Self::Myself),
+                    "_myself_" => Some(Self::Myself),
                     _ => Some(Self::Sprite(a)),
                 }
             }
@@ -889,13 +888,11 @@ pub enum DraggableOption {
 }
 impl DraggableOption {
     fn from(val: Option<Value>) -> Option<DraggableOption> {
-        let drag: &'static str = "draggable";
-        let not_drag: &'static str = "not draggable";
         match val {
-            Some(a) => {
-                match a {
-                    drag => Some(Self::Draggable),
-                    not_drag => Some(Self::NotDraggable),
+            Some(Value::String(a)) => {
+                match a.as_str() {
+                    "draggable" => Some(Self::Draggable),
+                    "not draggable" => Some(Self::NotDraggable),
                     _ => {
                         #[cfg(debug_assertions)]
                         panic!("invalid draggable option: {:?}",a);
@@ -904,7 +901,12 @@ impl DraggableOption {
                     },
                 }
             }
-            None => None,
+            _ => {
+                #[cfg(debug_assertions)]
+                panic!("invalid draggable option: {:?}",val);
+                #[cfg(not(debug_assertions))]
+                None
+            },
         }
     }
 }
