@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
-// Decompiler for Scratch games that Rust can understand and translate.
+/// This module contains the structure of a Scratch project and
+/// the functions for interacting with it.
 
 use std::{collections::HashMap, fs::read_to_string};
 use serde::{Deserialize, Deserializer};
