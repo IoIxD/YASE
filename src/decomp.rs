@@ -1,5 +1,4 @@
-#[allow(unused_variables)]
-#[allow(dead_code)]
+#![allow(dead_code)]
 
 // Decompiler for Scratch games that Rust can understand and translate.
 
