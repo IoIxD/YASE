@@ -23,13 +23,6 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use crate::block_names;
 
-/// IDs that tell us whether a block has a shadow or not, according to Scratch's deserialization code
-pub enum Inputs {
-    SameBlockShadow = 1,
-    BlockNoShadow = 2,
-    DiffBlockShadow = 3,
-}
-
 /// Either a number or a String, the latter signifying a pointer to another block.
 #[derive(Debug,Clone)]
 pub enum Value {
