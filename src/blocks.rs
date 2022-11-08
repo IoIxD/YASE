@@ -966,6 +966,9 @@ impl<'de> Deserialize<'de> for BlockType {
                                 Value::Number(bl.as_f64().unwrap())
                             } else {
                                 let st = bl.as_str().unwrap();
+                                if st == "" {
+                                    continue
+                                }
                                 if NUMBERS_ONLY_REGEX.is_match(st) {
                                     Value::String(st.to_string())
                                 } else {
@@ -1001,6 +1004,9 @@ impl<'de> Deserialize<'de> for BlockType {
                                 Value::Number(bl.as_f64().unwrap())
                             } else {
                                 let st = bl.as_str().unwrap();
+                                if st == "" {
+                                    continue
+                                }
                                 if NUMBERS_ONLY_REGEX.is_match(st) {
                                     Value::String(st.to_string())
                                 } else {
@@ -1739,7 +1745,7 @@ impl<'de> Deserialize<'de> for BlockType {
                             prev, next
                         }))
                     }
-                    block_names::DATA_VARIABLE => {
+                    /*block_names::DATA_VARIABLE => {
                         todo!()
                     }
                     
@@ -1805,7 +1811,7 @@ impl<'de> Deserialize<'de> for BlockType {
                     
                     block_names::DATA_SHOW_LIST => {
                         todo!()
-                    }
+                    }*/
 
                     // unused opcodes
 
