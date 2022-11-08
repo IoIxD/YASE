@@ -9,32 +9,24 @@
 /// - Since there's no logic here, Scratch's "sprite globals" i.e. "x position" are also represented by structs, and its up to you to resolve them. This also goes for functions with no arguments such as "next costume". They're not just enums because...
 /// - **Every single struct has a 'prev' and 'next' field, even if it doesn't show up in the documentation!** These represent the previous and next block, respectively.
 /// - Blocks that are considered redundant or unused or marked as "UnusedOpcode" structs to avoid confusion. These are blocks that have a value that isn't even used, and it just...goes to the next block and uses that value.
-
 extern crate proc;
-
 use std::{collections::HashMap};
-
 use proc::block_derive;
 #[allow(dead_code)]
-
 use serde::{Deserialize, Deserializer ,de};
 use serde_json::{Value as SerdeValue};
 use lazy_static::lazy_static;
 use regex::Regex;
 use crate::block_names;
-
-
 /// Either a number or a String, the latter signifying a pointer to another block.
 #[derive(Debug,Clone)]
 pub enum Value {
     Number(f64),
     String(String),
 }
-
 #[derive(Debug,Clone)]
 pub enum BlockType {
     // Motion blocks
-
     Move(Move),
     RotateLeft(RotateLeft),
     RotateRight(RotateRight),
@@ -53,9 +45,7 @@ pub enum BlockType {
     XPosition(XPosition),
     YPosition(YPosition),
     Direction(Direction),
-
     // Look blocks
-
     Say(Say),
     SayForever(SayForever),
     Think(Think),
@@ -76,9 +66,7 @@ pub enum BlockType {
     Costume(Costume),
     Backdrop(Backdrop),
     Size(Size),
-
     // Sound blocks
-
     PlaySound(PlaySound),
     PlaySoundUntilDone(PlaySoundUntilDone),
     StartSound(StartSound),
@@ -89,9 +77,7 @@ pub enum BlockType {
     ChangeVolumeBy(ChangeVolumeBy),
     SetVolumeTo(SetVolumeTo),
     Volume(Volume),
-
     // Event blocks
-
     WhenGreenFlagClicked(WhenGreenFlagClicked),
     WhenKeyPressed(WhenKeyPressed),
     WhenSpriteClicked(WhenSpriteClicked),
@@ -101,9 +87,7 @@ pub enum BlockType {
     WhenIRecieveBroadcast(WhenIRecieveBroadcast),
     Broadcast(Broadcast),
     BroadcastAndWait(BroadcastAndWait),
-
     // Control blocks
-
     WaitSeconds(WaitSeconds),
     Repeat(Repeat),
     Forever(Forever),
@@ -115,9 +99,7 @@ pub enum BlockType {
     WhenIStartAsAClone(WhenIStartAsAClone),
     CreateCloneOf(CreateCloneOf),
     DeleteClone(DeleteClone),
-
     // Sensing blocks
-
     Touching(Touching),
     TouchingMenu(TouchingMenu),
     TouchingColor(TouchingColor),
@@ -137,9 +119,7 @@ pub enum BlockType {
     CurrentTime(CurrentTime),
     DaysSince2000(DaysSince2000),
     Username(Username),
-
     // Operator blocks
-
     Add(Add),
     Sub(Sub),
     Mul(Mul),
@@ -158,19 +138,14 @@ pub enum BlockType {
     Modulo(Modulo),
     Round(Round),
     Absolute(Absolute),
-
     SoundEffectsMenu(SoundEffectsMenu),
     SoundSoundsMenu(SoundSoundsMenu),
     PointTowardsMenu(PointTowardsMenu),
-
     /// some opcodes are straight up unused or redundant and should be labelled as such.
     UnusedOpcode(UnusedOpcode),
-
     InvalidOpcode(InvalidOpcode),
 }
-
 // macro for implemeneting "from" based on given values.
-
 macro_rules! from_fn_from_map {
     ($structname:ty, {$($name:tt => $result:ident,)*}) => {
         impl $structname {
@@ -203,7 +178,6 @@ macro_rules! from_fn_from_map {
         }
     }
 }
-
 //
 // Motion Blocks
 //
@@ -273,7 +247,6 @@ pub enum Point {
     Direction(PointDirection),
     Towards(PointOption),
 }
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct PointDirection {
@@ -319,7 +292,6 @@ from_fn_from_map!(RotationStyle, {
     "don't rotate" => DontRotate,
     "all around" => AllAround,
 });
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetRotationStyle {
@@ -334,8 +306,6 @@ pub struct YPosition {}
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Direction {}
-
-
 //
 // Look blocks
 //
@@ -374,7 +344,6 @@ pub struct SwitchCostumeAndWait {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct NextCostume {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct SwitchBackdrop {
@@ -388,7 +357,6 @@ pub struct SwitchBackdropAndWait {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct NextBackdrop {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeSize {
@@ -402,25 +370,20 @@ pub struct SetSize {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ClearGraphicEffects {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ShowSprite {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct HideSprite {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct HideAllSprites {}
-
 #[derive(Debug,Clone)]
 pub enum LayerOption {
     Front,
     Back,
 }
-
 from_fn_from_map!(LayerOption, {
     "front" => Front,
     "back" => Back,
@@ -440,7 +403,6 @@ from_fn_from_map!(LayerDirection, {
     "forward" => Forward,
     "backward" => Backward,
 });
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeLayer {
@@ -456,11 +418,9 @@ pub enum Costume {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct CostumeByNumber {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct CostumeByName {}
-
 #[derive(Debug,Clone)]
 pub enum Backdrop {
     ByNumber(BackdropByNumber),
@@ -473,12 +433,9 @@ pub struct BackdropByNumber {}
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct BackdropByName {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Size {}
-
-
 //
 // Sound blocks
 //
@@ -500,7 +457,6 @@ pub struct StartSound {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct StopAllSounds {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct SoundEffectsMenu {
@@ -520,7 +476,6 @@ from_fn_from_map!(SoundEffect, {
     "PITCH" => Pitch,
     "PAN" => Pan,
 });
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeEffectBy {
@@ -536,7 +491,6 @@ pub struct SetEffectTo {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ClearSoundEffects {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeVolumeBy {
@@ -550,13 +504,10 @@ pub struct SetVolumeTo {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Volume {}
-
-
 // Event blocks
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenGreenFlagClicked {}
-
 #[derive(Debug,Clone)]
 pub enum Key {
     LeftArrow,
@@ -596,11 +547,9 @@ pub struct WhenKeyPressed {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenSpriteClicked {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenStageClicked {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenBackdropSwitchesTo {
@@ -611,12 +560,10 @@ pub enum EventOption {
     Loudness,
     Timer
 }
-
 from_fn_from_map!(EventOption, {
     "loudness" => Loudness,
     "timer" => Timer,
 });
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenOptionGreaterThen {
@@ -638,7 +585,6 @@ pub struct Broadcast {
 pub struct BroadcastAndWait {
     broadcast: Option<Value>,
 }
-
 //
 // Control
 //
@@ -655,7 +601,6 @@ pub struct Repeat {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Forever {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct IfThen {
@@ -682,17 +627,14 @@ pub struct RepeatUntil {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct StopAll {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenIStartAsAClone {}
-
 #[derive(Debug,Clone)]
 pub enum SpriteOption {
     Myself,
     Sprite(String),
 }
-
 impl SpriteOption {
     fn from(val: Option<Value>) -> Option<SpriteOption> {
         match val {
@@ -719,8 +661,6 @@ pub struct CreateCloneOf {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct DeleteClone {}
-
-
 // Sensing blocks
 #[derive(Debug,Clone)]
 pub enum SensingOption {
@@ -771,7 +711,6 @@ pub struct DistanceTo {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Answer {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct KeyPressed {
@@ -780,15 +719,12 @@ pub struct KeyPressed {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct MouseDown {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct MouseX {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct MouseY {}
-
 #[derive(Debug,Clone)]
 pub enum DraggableOption {
     Draggable,
@@ -798,7 +734,6 @@ from_fn_from_map!(DraggableOption, {
     "draggable" => Draggable,
     "not draggable" => NotDraggable,
 });
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetDragMode {
@@ -807,15 +742,12 @@ pub struct SetDragMode {
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Loudness {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Timer {}
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ResetTimer {}
-
 #[derive(Debug,Clone)]
 pub enum BackdropOfOption {
     BackdropNumber,
@@ -847,7 +779,6 @@ from_fn_from_map!(CurrentTimeOption, {
     "minute" => Minute,
     "second" => Second,
 });
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct CurrentTime {
@@ -858,8 +789,6 @@ pub struct CurrentTime {
 pub struct DaysSince2000;#[block_derive]
 #[derive(Debug,Clone)]
 pub struct Username {}
-
-
 //
 // Operators
 //
@@ -967,34 +896,26 @@ pub struct Round {
 pub struct Absolute {
     a: Option<Value>,
 }
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct UnusedOpcode {
     name: String,
 }
-
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct InvalidOpcode {
     name: String,
 }
-
 // Variables
-
 // todo
-
 // Deserializiation implementation
-
 // numbers only regex
 lazy_static! {
     static ref NUMBERS_ONLY_REGEX: Regex = Regex::new(r"[^0-9]").unwrap();
 }
-
 impl<'de> Deserialize<'de> for BlockType {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error>{
         let v: HashMap<String, SerdeValue> = HashMap::deserialize(d)?;
-
         match v.get_key_value("opcode") {
             Some(a) => {
                 let name: &String = match a.1 {
@@ -1003,25 +924,20 @@ impl<'de> Deserialize<'de> for BlockType {
                         return Err(format!("not a string: {}",a.1)).map_err(de::Error::custom);
                     }
                 };
-
                 //
                 // Each block has three parts.
                 // The first value is always a number and signifies whether there's a "shadow".
                 // - 1 (SameBlockShadow): unobscured "shadow": the second value is a block
                 // - 2 (BlockNoShadow): no shadow: the second value is a reference to a block
                 // - 3 (DiffBlockShadow): obscured shadow: the second value is a reference to a block and the third is a "shadow"
-
                 // a "shadow" is something that's only important to the visual editor; its the value that the user dragged a block over.
                 // we don't care about this.
-
                 // inputs is never null only empty
                 let (_, inputs) = v.get_key_value("inputs").unwrap();
                 let inputs = inputs.as_object().unwrap();
-
                 // same with fields
                 let (_, fields) = v.get_key_value("fields").unwrap();
                 let fields = fields.as_object().unwrap();
-
                 //
                 // get the relevant values.
                 let mut values: Vec<Value> = Vec::new();
@@ -1052,7 +968,6 @@ impl<'de> Deserialize<'de> for BlockType {
                                         Ok(a) => Value::Number(a),
                                         Err(_) => return Err(format!("could not format {} into a number",st)).map_err(de::Error::custom),
                                     }
-
                                 }
                             }
                         },
@@ -1088,7 +1003,6 @@ impl<'de> Deserialize<'de> for BlockType {
                                         Ok(a) => Value::Number(a),
                                         Err(_) => return Err(format!("could not format {} into a number",st)).map_err(de::Error::custom),
                                     }
-
                                 }
                             }
                         },
@@ -1096,7 +1010,6 @@ impl<'de> Deserialize<'de> for BlockType {
                     };
                     field_values.push(value);
                 }
-
                 let val1 = match values.get(0) {
                     Some(a) => Some(a.to_owned()),
                     None => None,
@@ -1109,12 +1022,10 @@ impl<'de> Deserialize<'de> for BlockType {
                     Some(a) => Some(a.to_owned()),
                     None => None,
                 };
-
                 let field1 = match field_values.get(0) {
                     Some(a) => Some(a.to_owned()),
                     None => None,
                 };
-
                 let prev = match v.get_key_value("parent") {
                     Some(a) => Some(a.to_owned().1.to_string()),
                     None => None,
@@ -1123,8 +1034,7 @@ impl<'de> Deserialize<'de> for BlockType {
                     Some(a) => Some(a.to_owned().1.to_string()),
                     None => None,
                 };
-
-                match &*name.to_string() {
+                match &(*name.to_string()) {
                     block_names::MOTION_MOVE => {
                         Ok(BlockType::Move(Move { steps: val1, prev, next }))
                     },
@@ -1170,7 +1080,6 @@ impl<'de> Deserialize<'de> for BlockType {
                             PointOption { option: Some(Value::String(String::from("_mouse_"))), prev, next }
                         )))
                     }
-
                     block_names::MOTION_POINT_DIRECTION => {
                         Ok(BlockType::Point(Point::Direction(
                             PointDirection { x: val1, y: val2, prev, next }
@@ -1193,13 +1102,11 @@ impl<'de> Deserialize<'de> for BlockType {
                             prev, next
                         }))
                     },
-
                     block_names::MOTION_GLIDE_TO_MENU => {
                         Ok(BlockType::Glide(Glide::Option(
                             GlideOption { option: MovementOption::from(field1), prev, next}
                         )))
                     }
-
                     block_names::MOTION_IF_ON_EDGE_BOUNCE => {
                         Ok(BlockType::IfOnEdgeBounce(IfOnEdgeBounce{prev, next}))
                     },
@@ -1263,7 +1170,6 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::MOTION_YSCROLL => {
                         todo!()
                     }
-
                     block_names::LOOKS_SAY => {
                         Ok(BlockType::SayForever(
                             SayForever{
@@ -1477,7 +1383,6 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::SOUND_VOLUME => {
                         Ok(BlockType::Volume(Volume{prev, next}))
                     }
-
                     block_names::EVENT_WHEN_TOUCHING_OBJECT => {
                         todo!()
                     }
@@ -1618,21 +1523,18 @@ impl<'de> Deserialize<'de> for BlockType {
                     block_names::CONTROL_START_AS_CLONE => {
                         todo!()
                     }
-
                     block_names::SENSING_TOUCHING_OBJECT_MENU => {
                         Ok(BlockType::TouchingMenu(TouchingMenu{
                             touching: SensingOption::from(field1),
                             prev, next
                         }))
                     }
-
                     block_names::SENSING_TOUCHING_OBJECT => {
                         Ok(BlockType::Touching(Touching{
                             touching: val1,
                             prev, next
                         }))
                     }
-
                     block_names::SENSING_TOUCHING_COLOR => {
                         Ok(BlockType::TouchingColor(TouchingColor {
                             color: val1,
@@ -1833,28 +1735,21 @@ impl<'de> Deserialize<'de> for BlockType {
                             prev, next
                         }))
                     }
-
                     block_names::SOUND_SOUNDS_MENU => {
                         Ok(BlockType::SoundSoundsMenu(SoundSoundsMenu{
                             option: val1,
                             prev, next
                         }))
                     }
-
                     // Unused
                     /*block_names::SOUNDS_BEATS_MENU => {
-
                     }*/
-
                     block_names::SOUND_EFFECTS_MENU => {
                         Ok(BlockType::SoundEffectsMenu(SoundEffectsMenu{
                             option: SoundEffect::from(val1),
                             prev, next
                         }))
                     }
-
-
-
                     _ => {
                         #[cfg(debug_assertions)]
                         return Err(format!("invalid opcode {}",a.1)).map_err(de::Error::custom);
@@ -1863,7 +1758,6 @@ impl<'de> Deserialize<'de> for BlockType {
                             name: name.to_string(),
                         }))
                     }
-
                 }
             },
             None => {
