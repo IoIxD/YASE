@@ -2,6 +2,13 @@
 /// This module is specifically for deserialization of blocks in the .json
 /// files into their respective types, in such a way that is Rust-idomatic,
 /// deals away with unused data, and is generally nicer to work with.
+///
+/// It should be noted that the following rules are applied when translating
+/// these blocks:
+/// - Blocks that are the same but with a different argument are represented by an enum that leads to the respective types. For example, "goto <option>" and "goto "<x, y>" are one "goto" enum with a "Pos" and "Option" option.
+/// - Since there's no logic here, Scratch's "sprite globals" i.e. "x position" are also represented by structs, and its up to you to resolve them. This also goes for functions with no arguments such as "next costume". They're not just enums because...
+/// - **Every single struct has a 'prev' and 'next' field, even if it doesn't show up in the documentation!** These represent the previous and next block, respectively.
+/// - Blocks that are considered redundant or unused or marked as "UnusedOpcode" structs to avoid confusion. These are blocks that have a value that isn't even used, and it just...goes to the next block and uses that value.
 
 extern crate proc;
 
@@ -16,34 +23,13 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use crate::block_names;
 
-/// Enums and structs that represent certain types of blocks in Scratch.
-///
-/// It should be noted that the following rules are applied when translating
-/// these blocks:
-/// - Blocks that are the same but with a different argument are represented by an enum that leads to the respective types. For example, "goto <option>" and "goto "<x, y>" are one "goto" enum with a "Pos" and "Option" option.
-/// - Since there's no logic here, Scratch's "sprite globals" i.e. "x position" are also represented by structs, and its up to you to resolve them. This also goes for functions with no arguments such as "next costume". They're not just enums because...
-/// - **Every single struct has a 'prev' and 'next' field, even if it doesn't show up in the documentation!** These represent the previous and next block, respectively.
-/// - Blocks that are considered redundant or unused or marked as "UnusedOpcode" structs to avoid confusion. These are blocks that have a value that isn't even used, and it just...goes to the next block and uses that value.
+
 
 /// IDs that tell us whether a block has a shadow or not, according to Scratch's deserialization code
 pub enum Inputs {
     SameBlockShadow = 1,
     BlockNoShadow = 2,
     DiffBlockShadow = 3,
-}
-
-/// IDs that distinquish different primitives.
-pub enum Primitives {
-    MathNum = 4,
-    PositiveNum = 5,
-    WholeNum = 6,
-    IntegerNum = 7,
-    AngleNum = 8,
-    ColorPicker = 9,
-    Text = 10,
-    Broadcast = 11,
-    Var = 12,
-    List = 13,
 }
 
 /// Either a number or a String, the latter signifying a pointer to another block.
@@ -57,12 +43,8 @@ pub enum Value {
 pub enum BlockType {
     // Motion blocks
 
-    /// move _ steps
     Move(Move),
-    /// turn counterclockwise _ degrees.
-    /// counterclockwise is represented by a negative number
     RotateLeft(RotateLeft),
-    /// turn clockwise _ degrees.
     RotateRight(RotateRight),
     /// goto a MovementOption, or an x and y coordinate.
     Goto(Goto),
@@ -70,23 +52,14 @@ pub enum BlockType {
     Glide(Glide),
     /// point to a MovementOption or in a direction
     Point(Point),
-    /// change x by _
     ChangeX(ChangeX),
-    /// set x to _
     SetX(SetX),
-    /// change y by _
     ChangeY(ChangeY),
-    /// set y to _
     SetY(SetY),
-    /// if on edge, bounce
     IfOnEdgeBounce(IfOnEdgeBounce),
-    /// set rotation style
     SetRotationStyle(SetRotationStyle),
-    // x position
     XPosition(XPosition),
-    // y position
     YPosition(YPosition),
-    // direction
     Direction(Direction),
 
     // Look blocks
@@ -194,13 +167,13 @@ pub enum BlockType {
     Round(Round),
     Absolute(Absolute),
 
-    // """menus""" god this sucks
     SoundEffectsMenu(SoundEffectsMenu),
     SoundSoundsMenu(SoundSoundsMenu),
     PointTowardsMenu(PointTowardsMenu),
 
-    // some opcodes are straight up unused or redundant and should be labelled as such.
+    /// some opcodes are straight up unused or redundant and should be labelled as such.
     UnusedOpcode(UnusedOpcode),
+
     InvalidOpcode(InvalidOpcode),
 }
 
