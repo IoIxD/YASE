@@ -910,7 +910,9 @@ pub struct InvalidOpcode {
     name: String,
 }
 // Variables
-// todo
+
+
+
 // Deserializiation implementation
 // numbers only regex
 lazy_static! {
@@ -1050,13 +1052,6 @@ impl<'de> Deserialize<'de> for BlockType {
                             }
                         )))
                     },
-                    // redundant, just goes to MOTION_GOTO_MENU
-                    block_names::MOTION_GOTO => {
-                        Ok(BlockType::UnusedOpcode(UnusedOpcode{
-                            name: block_names::MOTION_GOTO.to_string(),
-                            prev, next
-                        }))
-                    },
                     block_names::MOTION_GOTO_MENU => {
                         Ok(BlockType::Goto(Goto::Option(
                             GotoOption {
@@ -1097,13 +1092,6 @@ impl<'de> Deserialize<'de> for BlockType {
                         Ok(BlockType::Glide(Glide::Pos(
                             GlidePos{ x: val1, y: val2, prev, next }
                         )))
-                    },
-                    // redundant, just goes to MOTION_GLIDE_TO_MENU
-                    block_names::MOTION_GLIDE_TO => {
-                        Ok(BlockType::UnusedOpcode(UnusedOpcode {
-                            name: block_names::MOTION_GLIDE_TO.to_string(),
-                            prev, next
-                        }))
                     },
                     block_names::MOTION_GLIDE_TO_MENU => {
                         Ok(BlockType::Glide(Glide::Option(
@@ -1744,21 +1732,99 @@ impl<'de> Deserialize<'de> for BlockType {
                             prev, next
                         }))
                     }
-                    // Unused
-                    /*block_names::SOUNDS_BEATS_MENU => {
-                    }*/
+
                     block_names::SOUND_EFFECTS_MENU => {
                         Ok(BlockType::SoundEffectsMenu(SoundEffectsMenu{
                             option: SoundEffect::from(val1),
                             prev, next
                         }))
                     }
+                    block_names::DATA_VARIABLE => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_SET_VARIABLE_TO => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_CHANGE_VARIABLE_BY => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_HIDE_VARIABLE => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_SHOW_VARIABLE => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_LIST_COTNENTS => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_ADD_TO_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_DELETE_OF_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_DELETE_ALL_OF_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_INSERT_AT_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_REPLACE_ITEM_OF_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_ITEM_OF_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_ITEM_NUM_OF_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_LENGTH_OF_LIST => {
+                        todo!()
+                    }
+
+                    block_names::DATA_LIST_CONTAINS_ITEM => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_HIDE_LIST => {
+                        todo!()
+                    }
+                    
+                    block_names::DATA_SHOW_LIST => {
+                        todo!()
+                    }
+
+                    // unused opcodes
+
+                    block_names::MOTION_GOTO |
+                    block_names::SOUNDS_BEATS_MENU |
+                    block_names::MOTION_GLIDE_TO => {
+                        Ok(BlockType::UnusedOpcode(UnusedOpcode{
+                            name: name.to_string(),
+                            prev, next
+                        }))
+                    },
+
                     _ => {
                         #[cfg(debug_assertions)]
                         return Err(format!("invalid opcode {}",a.1)).map_err(de::Error::custom);
                         #[cfg(not(debug_assertions))]
                         Ok(BlockType::InvalidOpcode(InvalidOpcode{
                             name: name.to_string(),
+                            prev, next
                         }))
                     }
                 }
