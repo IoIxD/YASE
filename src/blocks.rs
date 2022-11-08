@@ -23,8 +23,6 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use crate::block_names;
 
-
-
 /// IDs that tell us whether a block has a shadow or not, according to Scratch's deserialization code
 pub enum Inputs {
     SameBlockShadow = 1,
@@ -177,6 +175,41 @@ pub enum BlockType {
     InvalidOpcode(InvalidOpcode),
 }
 
+// macro for implemeneting "from" based on given values.
+
+macro_rules! from_fn_from_map {
+    ($structname:ty, {$($name:tt => $result:ident,)*}) => {
+        impl $structname {
+            fn from(val: Option<Value>) -> Option<$structname> {
+                match val {
+                    Some(a) => {
+                        match a {
+                            Value::String(a) => match a.as_str() {
+                                $(
+                                    $name => Some(Self::$result),
+                                )*
+                                _ => {
+                                    #[cfg(debug_assertions)]
+                                    panic!("invalid $structname: {}",a);
+                                    #[cfg(not(debug_assertions))]
+                                    None
+                                },
+                            },
+                            _ => {
+                                #[cfg(debug_assertions)]
+                                panic!("invalid type given for $structname, expected string");
+                                #[cfg(not(debug_assertions))]
+                                None
+                            },
+                        }
+                    }
+                    None => None,
+                }
+            }
+        }
+    }
+}
+
 //
 // Motion Blocks
 //
@@ -200,36 +233,10 @@ pub enum MovementOption {
     RandomPosition,
     MousePointer,
 }
-impl MovementOption {
-    fn from(val: Option<Value>) -> Option<MovementOption> {
-        match val {
-            Some(a) => {
-                match a {
-                    Value::String(a) => match a.as_str() {
-                        "_random_" => Some(Self::RandomPosition),
-                        "_mouse_" => Some(Self::MousePointer),
-                        _ => {
-                            #[cfg(debug_assertions)]
-                            panic!("invalid movement option: {}",a);
-                            #[cfg(not(debug_assertions))]
-                            None
-                        },
-                    },
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid type given for movement option, expected string");
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
-                }
-            }
-            None => None,
-        }
-    }
-}
-
-
-
+from_fn_from_map!(MovementOption, {
+    "_random_" => RandomPosition,
+    "_mouse_" => MousePointer,
+});
 #[derive(Debug,Clone)]
 pub enum Goto {
     Pos(GotoPos),
@@ -313,34 +320,12 @@ pub enum RotationStyle {
     DontRotate,
     AllAround,
 }
-impl RotationStyle {
-    fn from(val: Option<Value>) -> Option<RotationStyle> {
-        match val {
-            Some(a) => {
-                match a {
-                    Value::String(a) => match a.as_str() {
-                        "left-right" => Some(Self::LeftRight),
-                        "don't rotate" => Some(Self::DontRotate),
-                        "all around" => Some(Self::AllAround),
-                        _ => {
-                            #[cfg(debug_assertions)]
-                            panic!("invalid rotation style option: {}",a);
-                            #[cfg(not(debug_assertions))]
-                            None
-                        },
-                    },
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid type given for rotation style, expected string");
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
-                }
-            }
-            None => None,
-        }
-    }
-}
+from_fn_from_map!(RotationStyle, {
+    "left-right" => LeftRight,
+    "don't rotate" => DontRotate,
+    "all around" => AllAround,
+});
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetRotationStyle {
@@ -441,25 +426,11 @@ pub enum LayerOption {
     Front,
     Back,
 }
-impl LayerOption {
-    fn from(val: Option<Value>) -> Option<LayerOption> {
-        match val {
-            Some(Value::String(a)) => {
-                match a.as_str() {
-                    "front" => Some(Self::Front),
-                    "back" => Some(Self::Back),
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid layer option: {}",a);
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
-                }
-            }
-            _ => None,
-        }
-    }
-}
+
+from_fn_from_map!(LayerOption, {
+    "front" => Front,
+    "back" => Back,
+});
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct GotoLayer {
@@ -471,20 +442,11 @@ pub enum LayerDirection {
     Backward,
     Value(Value),
 }
-impl LayerDirection {
-    fn from(val: Option<Value>) -> Option<LayerDirection> {
-        match val {
-            Some(Value::String(a)) => {
-                match a.as_str() {
-                    "forward" => Some(Self::Forward),
-                    "backward" => Some(Self::Backward),
-                    _ => Some(Self::Value(Value::String(a))),
-                }
-            }
-            _ => None,
-        }
-    }
-}
+from_fn_from_map!(LayerDirection, {
+    "forward" => Forward,
+    "backward" => Backward,
+});
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeLayer {
@@ -560,25 +522,11 @@ pub enum SoundEffect {
     Pitch,
     Pan
 }
-impl SoundEffect {
-    fn from(val: Option<Value>) -> Option<SoundEffect> {
-        match val {
-            Some(Value::String(a)) => {
-                match a.as_str() {
-                    "PITCH" => Some(Self::Pitch),
-                    "PAN" => Some(Self::Pan),
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid sound effect: {}",a);
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
-                }
-            }
-            _ => None,
-        }
-    }
-}
+from_fn_from_map!(SoundEffect, {
+    "PITCH" => Pitch,
+    "PAN" => Pan,
+});
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct ChangeEffectBy {
@@ -669,25 +617,12 @@ pub enum EventOption {
     Loudness,
     Timer
 }
-impl EventOption {
-    fn from(val: Option<Value>) -> Option<EventOption> {
-        match val {
-            Some(Value::String(a)) => {
-                match a.as_str() {
-                    "loudness" => Some(Self::Loudness),
-                    "timer" => Some(Self::Timer),
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid event option: {}",a);
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
-                }
-            }
-            _ => None,
-        }
-    }
-}
+
+from_fn_from_map!(EventOption, {
+    "loudness" => Loudness,
+    "timer" => Timer,
+});
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct WhenOptionGreaterThen {
@@ -763,6 +698,7 @@ pub enum SpriteOption {
     Myself,
     Sprite(String),
 }
+
 impl SpriteOption {
     fn from(val: Option<Value>) -> Option<SpriteOption> {
         match val {
@@ -864,30 +800,11 @@ pub enum DraggableOption {
     Draggable,
     NotDraggable
 }
-impl DraggableOption {
-    fn from(val: Option<Value>) -> Option<DraggableOption> {
-        match val {
-            Some(Value::String(a)) => {
-                match a.as_str() {
-                    "draggable" => Some(Self::Draggable),
-                    "not draggable" => Some(Self::NotDraggable),
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid draggable option: {:?}",a);
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
-                }
-            }
-            _ => {
-                #[cfg(debug_assertions)]
-                panic!("invalid draggable option: {:?}",val);
-                #[cfg(not(debug_assertions))]
-                None
-            },
-        }
-    }
-}
+from_fn_from_map!(DraggableOption, {
+    "draggable" => Draggable,
+    "not draggable" => NotDraggable,
+});
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct SetDragMode {
@@ -927,38 +844,16 @@ pub enum CurrentTimeOption {
     Minute,
     Second,
 }
-impl CurrentTimeOption {
-    fn from(val: Option<Value>) -> Option<CurrentTimeOption> {
-        match val {
-            Some(a) => {
-                match a {
-                    Value::String(a) => match a.as_str() {
-                        "year" => Some(Self::Year),
-                        "month" => Some(Self::Month),
-                        "date" => Some(Self::Date),
-                        "day of week" => Some(Self::DayOfWeek),
-                        "hour" => Some(Self::Hour),
-                        "minute" => Some(Self::Minute),
-                        "second" => Some(Self::Second),
-                        _ => {
-                            #[cfg(debug_assertions)]
-                            panic!("invalid time option: {}",a);
-                            #[cfg(not(debug_assertions))]
-                            None
-                        },
-                    }
-                    _ => {
-                        #[cfg(debug_assertions)]
-                        panic!("invalid type given for current time, expected string");
-                        #[cfg(not(debug_assertions))]
-                        None
-                    },
-                }
-            }
-            None => None,
-        }
-    }
-}
+from_fn_from_map!(CurrentTimeOption, {
+    "year" => Year,
+    "month" => Month,
+    "date" => Date,
+    "day of week" => DayOfWeek,
+    "hour" => Hour,
+    "minute" => Minute,
+    "second" => Second,
+});
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct CurrentTime {
