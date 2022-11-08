@@ -178,14 +178,17 @@ macro_rules! from_fn_from_map {
         }
     }
 }
-//
-// Motion Blocks
-//
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct Move {
     steps: Option<Value>
 }
+
+//
+// Motion Blocks
+//
+
 #[block_derive]
 #[derive(Debug,Clone)]
 pub struct RotateLeft {
