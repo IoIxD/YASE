@@ -23,7 +23,7 @@ pub const MOTION_SET_Y: &str = "motion_sety";
 pub const MOTION_XPOSITION: &str = "motion_xposition";
 pub const MOTION_YPOSITION: &str = "motion_yposition";
 pub const MOTION_DIRECTION: &str = "motion_direction";
-pub const MOTION_SCROLL_RIGHT: &str ="motion_scroll_right";
+pub const MOTION_SCROLL_RIGHT: &str = "motion_scroll_right";
 pub const MOTION_SCROLL_UP: &str = "motion_scroll_up";
 pub const MOTION_ALIGN_SCENE: &str = "motion_align_scene";
 pub const MOTION_XSCROLL: &str = "motion_xscroll";
@@ -156,3 +156,8 @@ pub const DATA_LENGTH_OF_LIST: &str = "data_lengthoflist";
 pub const DATA_LIST_CONTAINS_ITEM: &str = "data_listcontainsitem";
 pub const DATA_HIDE_LIST: &str = "data_hidelist";
 pub const DATA_SHOW_LIST: &str = "data_showlist";
+
+pub const PROCEDURES_DEFINITION: &str = "procedures_definition";
+pub const PROCEDURES_CALL: &str = "procedures_call";
+pub const PROCEDURES_PROTOTYPE: &str = "procedures_prototype";
+pub const PROCEDURES_DECLARATION: &str = "procedures_declaration";
