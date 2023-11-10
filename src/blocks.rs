@@ -12,14 +12,15 @@
 // what
 use crate::{
     block_defs::custom::{
-        ProceduresCall, ProceduresDeclaration, ProceduresDefinition, ProceduresPrototype,
+        Mutation, MutationVisitor, ProceduresCall, ProceduresDeclaration, ProceduresDefinition,
+        ProceduresPrototype,
     },
     block_names,
 };
 use lazy_static::lazy_static;
 use proc::block_derive;
 use regex::Regex;
-use serde::de::Visitor;
+use serde::de::{value::StringDeserializer, Visitor};
 #[allow(dead_code)]
 use serde::{de, Deserialize, Deserializer};
 use serde_json::Value as SerdeValue;
@@ -42,10 +43,6 @@ pub enum Value {
     String(String),
     Null,
 }
-
-/*
-{"opcode":"procedures_call","next":"g7a=ipT=MwMvcQAx.Ny`","parent":"#goRBg#q}(]yw)R,4b.m","inputs":{"input0":[3,[12,"ix0",";NMBJq-]*D9q3bcLae%J-ix0-"],[4,10]],"input1":[3,[12,"ix1",";NMBJq-]*D9q3bcLae%J-ix1-"],[4,10]],"input2":[3,[12,"sy",";NMBJq-]*D9q3bcLae%J-sy-"],[4,10]]},"fields":{},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","children":[],"proccode":"lerp %n %n %n","argumentids":"[\"input0\",\"input1\",\"input2\"]"}},"g7a=ipT=MwMvcQAx.Ny`":{"opcode":"data_setvariableto","next":null,"parent":"ZyyLElftjS~d*-dqLq[t","inputs":{"VALUE":[3,[12,"lerp",";NMBJq-]*D9q3bcLae%J-lerp-"],[10,""]]},"fields":{"VARIABLE":["perlin",";NMBJq-]*D9q3bcLae%J-perlin-"]},"shadow":false,"topLevel":false},"cMZ8+!DDrZ/yX]h-}#t%":{"opcode":"procedures_definition","next":"xEdO?T:k2,FRq1Latv0X","parent":null,"inputs":{"custom_block":[1,"Be[iK^b|zZI=T,c!~p=f"]},"fields":{},"shadow":false,"topLevel":true,"x":2058,"y":22},"Be[iK^b|zZI=T,c!~p=f":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"makeNoise %n %n","argumentnames":"[\"x\",\"y\"]","argumentids":"[\"input0\",\"input1\"]","argumentdefaults":"[1,1]","warp":true,"children":[]}},"xEdO?T:k2,FRq1Latv0X":{"opcode":"data_deleteoflist","next":"U5/tpxK)hBPjru?zWM^c","parent":"cMZ8+!DDrZ/yX]h-}#t%","inputs":{"INDEX":[1,[7,"all"]]},"fields":{"LIST":["publicNoise",",GzW(ccBawq|nm7Or4y[-publicNoise-list"]},"shadow":false,"topLevel":false},"U5/tpxK)hBPjru?zWM^c":{"opcode":"control_repeat","next":null,"parent":"xEdO?T:k2,FRq1Latv0X","inputs":{"TIMES":[3,"anp(fzieh%)MhL@8^Cz+",[6,10]],"SUBSTACK":[2,"2YM.?xYIR]7Jxe^EajX,"]},"fields":{},"shadow":false,"topLevel":false},"anp(fzieh%)MhL@8^Cz+":{"opcode":"argument_reporter_string_number","next":null,"parent":"U5/tpxK)hBPjru?zWM^c","inputs":{},"fields":{"VALUE":["x"]},"shadow":false,"topLevel":false},"2YM.?xYIR]7Jxe^EajX,":{"opcode":"control_repeat","next":null,"parent":"U5/tpxK)hBPjru?zWM^c","inputs":{"TIMES":[3,"AyH9h:O@!Zu_^F/{h!S!",[6,10]],"SUBSTACK":[2,"mX}LY]wov_V4SQZMKuh("]},"fields":{},"shadow":false,"topLevel":false},"AyH9h:O@!Zu_^F/{h!S!":{"opcode":"argument_reporter_string_number","next":null,"parent":"2YM.?xYIR]7Jxe^EajX,","inputs":{},"fields":{"VALUE":["y"]},"shadow":false,"topLevel":false},"mX}LY]wov_V4SQZMKuh(":{"opcode":"data_addtolist","next":null,"parent":"2YM.?xYIR]7Jxe^EajX,","inputs":{"ITEM":[3,"W9C9/#-Gqk{G(CV-v.7#",[10,""]]},"fields":{"LIST":["publicNoise",",GzW(ccBawq|nm7Or4y[-publicNoise-list"]},"shadow":false,"topLevel":false},"W9C9/#-Gqk{G(CV-v.7#":{"opcode":"operator_random","next":null,"parent":"mX}LY]wov_V4SQZMKuh(","inputs":{"FROM":[1,[4,1]],"TO":[1,[4,360]]},"fields":{},"shadow":false,"topLevel":false},",1ySOF3IIf,Gm4qxGlF:":{"opcode":"procedures_definition","next":"=E62P%iVOewO)/]*?5UQ","parent":null,"inputs":{"custom_block":[1,"t+Aj68NFs:u:V+7IU0T."]},"fields":{},"shadow":false,"topLevel":true,"x":2058,"y":470},"t+Aj68NFs:u:V+7IU0T.":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"CreateClones","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":true,"children":[]}},"=E62P%iVOewO)/]*?5UQ":{"opcode":"data_setvariableto","next":"gzEu@Zxx7jEDkh}owp6f","parent":",1ySOF3IIf,Gm4qxGlF:","inputs":{"VALUE":[1,[10,0]]},"fields":{"VARIABLE":["Clone#",";NMBJq-]*D9q3bcLae%J-Clone#-"]},"shadow":false,"topLevel":false},"gzEu@Zxx7jEDkh}owp6f":{"opcode":"control_repeat","next":null,"parent":"=E62P%iVOewO)/]*?5UQ","inputs":{"TIMES":[3,"Z:GEe0klzGc1IK,Z:-LR",[6,10]],"SUBSTACK":[2,"jWI_n16R!d8!@)gMB=`#"]},"fields":{},"shadow":false,"topLevel":false},"Z:GEe0klzGc1IK,Z:-LR":{"opcode":"operator_multiply","next":null,"parent":"gzEu@Zxx7jEDkh}owp6f","inputs":{"NUM1":[3,[12,"width",",GzW(ccBawq|nm7Or4y[-width-"],[4,10]],"NUM2":[3,[12,"Height",",GzW(ccBawq|nm7Or4y[-Height-"],[4,10]]},"fields":{},"shadow":false,"topLevel":false},"jWI_n16R!d8!@)gMB=`#":{"opcode":"control_create_clone_of","next":"a%PwU*EtTc1O^0q%K+Qe","parent":"gzEu@Zxx7jEDkh}owp6f","inputs":{"CLONE_OPTION":[1,"(en=ivLKMHT*j]LXV/]i"]},"fields":{},"shadow":false,"topLevel":false},"(en=ivLKMHT*j]LXV/]i":{"opcode":"control_create_clone_of_menu","next":null,"parent":"jWI_n16R!d8!@)gMB=`#","inputs":{},"fields":{"CLONE_OPTION":["_myself_"]},"shadow":true,"topLevel":false}
- */
 
 #[derive(Debug, Clone)]
 pub enum BlockType {
@@ -350,6 +347,7 @@ struct RawBlock {
     parent: Option<String>,
     inputs: HashMap<String, Value>,
     fields: HashMap<String, Value>,
+    hash: HashMap<String, SerdeValue>,
 }
 
 impl<'de> Visitor<'de> for RawBlock {
@@ -436,6 +434,7 @@ impl<'de> Deserialize<'de> for RawBlock {
                     parent: prev.clone(),
                     inputs,
                     fields,
+                    hash,
                 })
             }
             None => {
@@ -1160,6 +1159,12 @@ impl<'de> Deserialize<'de> for BlockType {
             }
             block_names::PROCEDURES_PROTOTYPE => {
                 Ok(BlockType::ProceduresPrototype(ProceduresPrototype {
+                    mutation: raw
+                        .hash
+                        .get("mutation")
+                        .unwrap()
+                        .deserialize_map(MutationVisitor)
+                        .unwrap(),
                     prev,
                     next,
                 }))

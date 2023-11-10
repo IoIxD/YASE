@@ -55,8 +55,24 @@ fn main() -> Result<(), Box<dyn Error>> {
                     follow_main_block(&blocks, a);
                 }
                 ProceduresDefinition(a) => {
-                    println!("procedure:");
-                    follow_main_block(&blocks, a);
+                    if let Some(ProceduresPrototype(b)) = blocks.get(&a.block.replace("\"", "")) {
+                        // @TODO: DEAR MOTHER OF GOD
+                        println!(
+                            "procedure: {:?}",
+                            b.mutation
+                                .proccode
+                                .as_ref()
+                                .unwrap()
+                                .as_str()
+                                .unwrap()
+                                .to_string()
+                                .split(" ")
+                                .map(|f| f.to_string())
+                                .collect::<Vec<String>>()
+                                .get(0)
+                        );
+                        follow_main_block(&blocks, a);
+                    }
                 }
                 _ => {}
             }

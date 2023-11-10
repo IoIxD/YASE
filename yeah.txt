@@ -1,10 +1,17 @@
 Stage
-broadcast+wait None:
-	WaitSeconds(WaitSeconds { seconds: None, prev: Some("\"FoDLx^7R9oT-W0/Nwyg^\""), next: Some("null") })
 main:
 	Forever(Forever { prev: Some("\"8khi~7q]kfU/l0%Gion%\""), next: Some("null") })
+broadcast+wait None:
+	WaitSeconds(WaitSeconds { seconds: None, prev: Some("\"FoDLx^7R9oT-W0/Nwyg^\""), next: Some("null") })
 Generator
-procedure:
+procedure: Some("makeNoise")
+	InvalidOpcode(InvalidOpcode { name: "data_deleteoflist", prev: Some("\"cMZ8+!DDrZ/yX]h-}#t%\""), next: Some("\"U5/tpxK)hBPjru?zWM^c\"") })
+	Repeat(Repeat { units: None, prev: Some("\"xEdO?T:k2,FRq1Latv0X\""), next: Some("null") })
+when i recieve None:
+	ProceduresCall(ProceduresCall { prev: Some("\"t+]QPbWm:m;+hx.v~:l{\""), next: Some("null") })
+procedure: Some("dotGridGradient")
+	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"pOIggOk2O{55HQR[3gq3\""), next: Some("null") })
+procedure: Some("redraw")
 	ProceduresCall(ProceduresCall { prev: Some("\"j?zn6.!Z6#G61Sq^-#[n\""), next: Some("\"RoW0l_L@|6QidK^bkx65\"") })
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"?CsaD**}+BXYJnET|}_%\""), next: Some("\"gv1U1=]diZPInZi)zP(=\"") })
 	ProceduresCall(ProceduresCall { prev: Some("\"RoW0l_L@|6QidK^bkx65\""), next: Some("\"1,915_}?TXvN#Si3It9G\"") })
@@ -15,17 +22,18 @@ procedure:
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"9p}u0mR_@SzPtlaV;q.A\""), next: Some("\"^aoTs1LP_O[O[BJ/#G{k\"") })
 	SetEffectTo(SetEffectTo { effect: None, percentage: None, prev: Some("\"tm*v+~Ac`.G_9OFz#PD{\""), next: Some("\"kv=~pv8y*l^K(zr(*Azc\"") })
 	IfThenElse(IfThenElse { condition: None, then: None, otherwise: None, prev: Some("\"^aoTs1LP_O[O[BJ/#G{k\""), next: Some("null") })
-procedure:
-	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"pOIggOk2O{55HQR[3gq3\""), next: Some("null") })
-procedure:
-	InvalidOpcode(InvalidOpcode { name: "data_deleteoflist", prev: Some("\"cMZ8+!DDrZ/yX]h-}#t%\""), next: Some("\"U5/tpxK)hBPjru?zWM^c\"") })
-	Repeat(Repeat { units: None, prev: Some("\"xEdO?T:k2,FRq1Latv0X\""), next: Some("null") })
-procedure:
+main:
+	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"GJ-@?Hx8lKXG,.0s`dP{\""), next: Some("\"Jo-ZXeih|PU4dFG9/d;=\"") })
+	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"lM4sIc!Cq(Rx@Rj1{*3[\""), next: Some("\"/3y3ya)+Qmdh?ob8FT=M\"") })
+	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"Jo-ZXeih|PU4dFG9/d;=\""), next: Some("\"h`W%dZ:4-yS4jQ?McKp(\"") })
+	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"/3y3ya)+Qmdh?ob8FT=M\""), next: Some("\"h4I)xfbTh+ZR8uY;/QuL\"") })
+	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"h`W%dZ:4-yS4jQ?McKp(\""), next: Some("\"oEu+!i~819quv48l945D\"") })
+	SetSize(SetSize { percentage: None, prev: Some("\"h4I)xfbTh+ZR8uY;/QuL\""), next: Some("\"bN|2rK[E*+0an!V;I9hq\"") })
+	ProceduresCall(ProceduresCall { prev: Some("\"oEu+!i~819quv48l945D\""), next: Some("null") })
+procedure: Some("lerp")
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"VFMC.)~aqGP(uB1@Yeit\""), next: Some("\"Plk+n6pbDwV?aOlKsdby\"") })
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"tM`HlMR=nVyp2K-e}MTd\""), next: Some("null") })
-when i recieve None:
-	ProceduresCall(ProceduresCall { prev: Some("\"t+]QPbWm:m;+hx.v~:l{\""), next: Some("null") })
-procedure:
+procedure: Some("perlin")
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"i5+X}u~!4AqjgSYfGDC/\""), next: Some("\"I.P}o.#ZLK5Nq!!a;i_e\"") })
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"FVu!NavB?Xrx,ta7|ab-\""), next: Some("\"2V41(U9kqGVuM9ire?:^\"") })
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"I.P}o.#ZLK5Nq!!a;i_e\""), next: Some("\"If|SnN+.lLo6Nuuc@r=z\"") })
@@ -46,14 +54,6 @@ procedure:
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"(ihG5j[lN+khwO0#t8T^\""), next: Some("\"ZyyLElftjS~d*-dqLq[t\"") })
 	ProceduresCall(ProceduresCall { prev: Some("\"#goRBg#q}(]yw)R,4b.m\""), next: Some("\"g7a=ipT=MwMvcQAx.Ny`\"") })
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"ZyyLElftjS~d*-dqLq[t\""), next: Some("null") })
-main:
-	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"GJ-@?Hx8lKXG,.0s`dP{\""), next: Some("\"Jo-ZXeih|PU4dFG9/d;=\"") })
-	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"lM4sIc!Cq(Rx@Rj1{*3[\""), next: Some("\"/3y3ya)+Qmdh?ob8FT=M\"") })
-	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"Jo-ZXeih|PU4dFG9/d;=\""), next: Some("\"h`W%dZ:4-yS4jQ?McKp(\"") })
-	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"/3y3ya)+Qmdh?ob8FT=M\""), next: Some("\"h4I)xfbTh+ZR8uY;/QuL\"") })
-	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\"h`W%dZ:4-yS4jQ?McKp(\""), next: Some("\"oEu+!i~819quv48l945D\"") })
-	SetSize(SetSize { percentage: None, prev: Some("\"h4I)xfbTh+ZR8uY;/QuL\""), next: Some("\"bN|2rK[E*+0an!V;I9hq\"") })
-	ProceduresCall(ProceduresCall { prev: Some("\"oEu+!i~819quv48l945D\""), next: Some("null") })
-procedure:
+procedure: Some("CreateClones")
 	InvalidOpcode(InvalidOpcode { name: "data_setvariableto", prev: Some("\",1ySOF3IIf,Gm4qxGlF:\""), next: Some("\"gzEu@Zxx7jEDkh}owp6f\"") })
 	Repeat(Repeat { units: None, prev: Some("\"=E62P%iVOewO)/]*?5UQ\""), next: Some("null") })
