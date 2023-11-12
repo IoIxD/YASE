@@ -40,6 +40,9 @@ pub fn block_derive(_attr: TokenStream, item: TokenStream) -> TokenStream {
             fn next(&self) -> Option<String> {
                 self.next.clone()
             }
+            fn debug_fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                std::fmt::Debug::fmt(self, f)
+            }
         }
     }
     .into();

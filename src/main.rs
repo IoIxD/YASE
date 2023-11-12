@@ -1,4 +1,6 @@
-use std::{collections::HashMap, error::Error};
+#![feature(fmt_internals)]
+
+use std::{collections::HashMap, error::Error, fmt::Debug};
 
 use blocks::{Block, BlockType, WhenGreenFlagClicked};
 
@@ -85,7 +87,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn follow_main_block(blocks: &HashMap<String, BlockType>, b: &dyn Block) {
     if let Some(m) = &b.next() {
         if let Some(next) = blocks.get(&m.replace("\"", "")) {
-            println!("\t{:?}", next);
+            println!("\t{}", next);
             match next {
                 Move(a) => follow_main_block(blocks, a),
                 RotateLeft(a) => follow_main_block(blocks, a),
